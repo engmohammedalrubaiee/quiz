@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>منصة الكويزات – الجامعة الإماراتية الدولية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   🎨 الألوان والخطوط — عدّل القيم هنا لتغيير شكل التطبيق
+   ============================================================ */
+:root{
+  --bg:#EEF2FA; --card:#FFFFFF; --ink:#14284B; --muted:#62708F; --line:#D9E0F0;
+  --primary:#1F4E96; --primary-2:#3C7BE0; --accent:#E8B53A;
+  --ok:#12A37A; --ok-bg:#E2F7EF; --bad:#D92D45; --bad-bg:#FDE8EC;
+  /* ألوان الشعار في الوضع النهاري */
+  --logo-navy:#1B3866; --logo-red:#A82339; --logo-edge:transparent;
+  --radius:22px; --shadow:0 10px 30px rgba(20,40,90,.12);
+  --font:'Cairo','Segoe UI',Tahoma,Arial,sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#0E1730; --card:#172447; --ink:#EEF2FF; --muted:#93A2CC; --line:#27386A;
+  --primary:#5B97F0; --primary-2:#7FB0FF;
+  --ok-bg:#103A31; --bad-bg:#43202B; --shadow:0 10px 30px rgba(0,0,0,.4);
+  /* ألوان الشعار في الوضع الليلي: نصوص فاتحة + حافة خفيفة تُظهر الدرع */
+  --logo-navy:#E3ECFF; --logo-red:#FF6F82; --logo-edge:#7FA2E6;
+}
+
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);transition:background .3s,color .3s}
+body::before{content:"";position:fixed;inset:0;z-index:-1;
+  background:radial-gradient(circle at 95% 0%,color-mix(in srgb,var(--primary-2) 24%,transparent),transparent 45%),
+             radial-gradient(circle at 0% 100%,color-mix(in srgb,#C8202F 12%,transparent),transparent 40%)}
+button{font-family:inherit;cursor:pointer;border:0;color:inherit;background:none}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.i{flex:none;display:block}
+
+/* ألوان الشعار القابلة للتبديل */
+.ln{fill:var(--logo-navy)} .lr{fill:var(--logo-red)}
+.lrs{stroke:var(--logo-red)} .le{stroke:var(--logo-edge)}
+
+.app{max-width:780px;margin:0 auto;padding:14px 16px 40px;min-height:100vh;display:flex;flex-direction:column}
+
+/* الشريط العلوي */
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.brand{flex:1;display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;text-align:right}
+.brand svg{height:50px;width:auto}
+.icon-btn{width:42px;height:42px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--ink)}
+.icon-btn[hidden]{display:none}
+
+/* ===== شاشة الترحيب (خلفية داكنة دائماً بألوان شعار ليلية) ===== */
+.splash{--logo-navy:#E3ECFF;--logo-red:#FF6F82;--logo-edge:#8FB0F0;
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px;text-align:center;
+  background:radial-gradient(circle at 50% 30%,#24508F 0%,#12295A 55%,#0A1630 100%);color:#fff;transition:opacity .6s,transform .6s}
+.splash.out{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash .logo{width:min(70vw,290px);filter:drop-shadow(0 18px 40px rgba(0,0,0,.45));animation:logoIn .9s cubic-bezier(.2,.9,.25,1.1) both}
+.splash .logo svg{width:100%;height:auto;display:block}
+.splash h1{font-size:clamp(24px,6vw,34px);font-weight:800;margin-top:14px;animation:up .7s .5s both}
+.splash p{opacity:.85;font-size:17px;animation:up .7s .7s both}
+.splash .btn{margin-top:16px;background:#fff;color:#12295A;animation:up .7s .95s both}
+@keyframes logoIn{from{opacity:0;transform:translateY(40px) scale(.7)}}
+@keyframes up{from{opacity:0;transform:translateY(18px)}}
+
+/* ===== الصفحات ===== */
+.screen{animation:enter .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.hero{margin:4px 0 18px}
+.hero h1{font-size:clamp(26px,6.5vw,36px);font-weight:800;line-height:1.35}
+.hero p{color:var(--muted);margin-top:6px;font-size:16px}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.crumbs span{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font-size:13px;font-weight:800;padding:4px 12px;border-radius:99px}
+
+/* مؤشر الخطوات */
+.steps{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.steps i{flex:1;height:6px;border-radius:99px;background:var(--line);transition:background .3s}
+.steps i.on{background:linear-gradient(90deg,var(--primary),var(--primary-2))}
+.steps span{font-size:13px;font-weight:800;color:var(--muted);min-width:70px;text-align:left}
+
+/* شبكة الخيارات */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.tile{background:var(--card);border:2px solid transparent;border-radius:20px;padding:18px;text-align:right;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:transform .2s,border-color .2s}
+.tile:hover{transform:translateY(-3px);border-color:var(--tc,var(--primary))}
+.tile:active{transform:scale(.97)}
+.tile .ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:var(--tc,var(--primary));color:#fff}
+.tile .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tile b{font-size:17px;line-height:1.4}
+.tile small{color:var(--muted);font-size:13px}
+.tile .go{color:var(--muted);opacity:.7}
+.tile.empty{opacity:.72}
+.tile.big{flex-direction:column;align-items:flex-start;padding:22px}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.two .tile{flex-direction:column;align-items:center;text-align:center;padding:26px 12px}
+.grid.two .tx{align-items:center;flex:none}
+
+.empty-box{background:var(--card);border-radius:20px;padding:30px 18px;text-align:center;border:2px dashed var(--line)}
+.empty-box .eic{width:68px;height:68px;border-radius:20px;margin:0 auto 12px;display:grid;place-items:center;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
+.empty-box h3{font-size:19px;margin-bottom:6px}
+.empty-box p{color:var(--muted);line-height:1.8;font-size:15px}
+
+.switch{display:flex;align-items:center;gap:10px;margin:18px 4px 0;color:var(--muted);font-size:15px;user-select:none}
+.switch input{width:20px;height:20px;accent-color:var(--primary)}
+
+/* الكويز */
+.progress{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.bar{flex:1;height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary-2));transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.count{font-weight:800;font-size:14px;color:var(--muted);min-width:54px;text-align:left}
+.score-chip{background:var(--accent);color:#3a2b00;font-weight:800;font-size:14px;padding:5px 12px;border-radius:99px;display:flex;align-items:center;gap:4px}
+.qcard{background:var(--card);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow)}
+.qtag{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--primary) 13%,transparent);color:var(--primary);font-weight:800;font-size:13px;padding:5px 12px;border-radius:99px;margin-bottom:14px}
+.qtext{font-size:clamp(20px,4.8vw,25px);font-weight:800;line-height:1.7}
+.options{display:grid;gap:12px;margin-top:20px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:right;background:var(--bg);border:2px solid var(--line);border-radius:18px;padding:13px 15px;font-size:18px;font-weight:600;line-height:1.6;transition:transform .15s,border-color .2s,background .2s}
+.opt:hover:not(:disabled){border-color:var(--primary);transform:translateX(-4px)}
+.opt .k{flex:none;width:36px;height:36px;border-radius:12px;background:var(--card);display:grid;place-items:center;font-weight:800;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok);animation:pop .4s}
+.opt.ok .k{background:var(--ok);color:#fff}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad);animation:shake .4s}
+.opt.bad .k{background:var(--bad);color:#fff}
+.opt.dim{opacity:.5}
+@keyframes pop{50%{transform:scale(1.03)}}
+@keyframes shake{25%{transform:translateX(8px)}50%{transform:translateX(-8px)}75%{transform:translateX(5px)}}
+.tf{grid-template-columns:1fr 1fr}
+.tf .opt{flex-direction:column;justify-content:center;text-align:center;padding:22px 10px;font-size:21px;font-weight:800}
+.tf .opt .k{width:52px;height:52px;border-radius:50%}
+
+.feedback{margin-top:16px;padding:12px 16px;border-radius:16px;font-weight:700;display:none;align-items:center;gap:10px;flex-wrap:wrap}
+.feedback.show{display:flex;animation:enter .3s}
+.feedback.ok{background:var(--ok-bg);color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.feedback .msg{flex:1;min-width:150px}
+.exp-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#3a2b00;font-weight:800;font-size:15px;padding:9px 16px;border-radius:12px;animation:pop .4s}
+.exp{display:none;margin-top:12px;padding:14px 16px;border-radius:16px;background:color-mix(in srgb,var(--accent) 16%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 60%,transparent);line-height:1.9;font-size:16px}
+.exp.show{display:block;animation:enter .3s}
+.exp b{display:flex;align-items:center;gap:6px;margin-bottom:4px;color:#9a6b00}
+:root[data-theme="dark"] .exp b{color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-weight:800;font-size:18px;padding:15px 28px;border-radius:18px;box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 35%,transparent);transition:transform .15s}
+:root[data-theme="dark"] .btn:not(.ghost){color:#0E1730}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.actions .btn{flex:1}
+
+.result{text-align:center}
+.ring{width:190px;height:190px;margin:10px auto 6px;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:14;stroke-linecap:round}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:url(#rg);stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;font-weight:800}
+.result h2{font-size:25px;margin-top:8px}
+.result p{color:var(--muted);margin-top:6px}
+.review{margin-top:22px;text-align:right}
+.review h3{margin-bottom:10px}
+.rev{background:var(--card);border-radius:18px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);border-inline-start:5px solid var(--bad)}
+.rev b{display:block;line-height:1.7}
+.rev .a{color:var(--ok);font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;margin-top:4px}
+.rev .e{color:var(--muted);font-size:14px;line-height:1.8;margin-top:6px}
+
+.footer{margin-top:auto;padding-top:30px;text-align:center;color:var(--muted);font-size:14px}
+.dev{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:var(--card);padding:10px 18px;border-radius:99px;box-shadow:var(--shadow)}
+.dev a{color:var(--primary);font-weight:800;text-decoration:none;direction:ltr;display:inline-flex;align-items:center;gap:6px}
+
+.confetti{position:fixed;top:-12px;width:10px;height:14px;z-index:99;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+@media (max-width:420px){.tf .opt{font-size:18px}.opt{font-size:17px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ===== إضافات النسخة الجديدة ===== */
+.drawer-bg{position:fixed;inset:0;background:rgba(5,12,30,.55);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-bg.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;right:0;width:min(300px,84vw);background:var(--card);z-index:61;transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);padding:calc(env(safe-area-inset-top,0px) + 16px) 14px 20px;display:flex;flex-direction:column;gap:4px;overflow:auto;box-shadow:var(--shadow)}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:19px}
+.nav{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;font-weight:800;font-size:16px;text-align:right;width:100%}
+.nav:hover,.nav.cur{background:color-mix(in srgb,var(--primary) 13%,transparent);color:var(--primary)}
+.field{display:grid;gap:8px;margin-top:14px}
+.field label{font-weight:800;font-size:14px;color:var(--muted)}
+input[type=number],input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:11px 14px;width:100%}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px}
+textarea{min-height:220px;line-height:1.9;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 16px;border-radius:99px;background:var(--bg);border:2px solid var(--line);font-weight:800;font-size:14px}
+.chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+:root[data-theme="dark"] .chip.on{color:#0E1730}
+.panel{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.panel h3{margin-bottom:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);width:100%;text-align:right}
+.row:last-child{border:0}
+.sw{position:relative;width:48px;height:27px;border-radius:99px;background:var(--line);flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:right .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sw.on{background:var(--primary)}.sw.on::after{right:24px}
+.pbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.pbar i{display:block;height:100%;border-radius:99px;background:var(--c,var(--primary))}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border-radius:18px;padding:14px 6px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:24px}.stat small{color:var(--muted);font-size:12px}
+.opt.sel{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,var(--bg))}
+.opt.sel .k{background:var(--primary);color:#fff}
+.tag{font-size:12px;font-weight:800;padding:2px 10px;border-radius:99px;margin-inline-start:6px}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.rev.ok{border-color:var(--ok)}.rev .y{font-size:15px;margin-top:6px;color:var(--muted)}
+details>summary{cursor:pointer;font-weight:800;padding:6px 0}
+.warn{color:var(--bad);font-weight:800}
+.note{background:color-mix(in srgb,var(--accent) 18%,var(--card));border-radius:16px;padding:12px 16px;margin-bottom:14px;font-weight:700;line-height:1.8}
+
+.splash{--logo-navy:#1B3866;--logo-red:#A82339;--logo-edge:transparent;background:radial-gradient(circle at 50% 26%,color-mix(in srgb,var(--primary-2) 24%,var(--bg)),var(--bg) 68%);color:var(--ink)}
+:root[data-theme="dark"] .splash{--logo-navy:#E3ECFF;--logo-red:#FF6F82;--logo-edge:#7FA2E6}
+.splash .logo{filter:drop-shadow(0 10px 22px rgba(20,40,90,.16))}
+.splash p{color:var(--muted);opacity:1}
+.splash .btn{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff}
+:root[data-theme="dark"] .splash .btn{color:#0E1730}
+.drawer{visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.drawer.on{visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.feedback{margin-top:12px;padding:6px 12px;font-size:14px;border-radius:12px;gap:8px;width:fit-content}
+.feedback .msg{flex:none;min-width:0}
+.exp-btn{font-size:13px;padding:5px 10px;border-radius:10px;gap:5px}
+.noanim{animation:none!important}
+.mini{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--muted);background:var(--card);padding:6px 10px;border-radius:99px;box-shadow:var(--shadow);white-space:nowrap}
+.mini[aria-pressed="true"]{color:var(--primary)}
+.tree summary{display:flex;align-items:center;gap:10px;padding:8px 0}
+.tree details details{margin-inline-start:16px}
+.tree .ck{width:20px;height:20px;accent-color:var(--primary);flex:none}
+/* ===== الوضع الليلي: رمادي فحمي احترافي ===== */
+:root[data-theme="dark"]{--bg:#0C0E13;--card:#151922;--ink:#ECEFF5;--muted:#9099AA;--line:#262C38;--primary:#6BA4FF;--primary-2:#8FBAFF;--ok:#2FC79A;--ok-bg:#0E2B24;--bad:#FF6B7D;--bad-bg:#35151C;--shadow:0 10px 30px rgba(0,0,0,.5)}
+:root[data-theme="dark"] body::before{background:radial-gradient(circle at 95% 0%,rgba(107,164,255,.09),transparent 45%),radial-gradient(circle at 0% 100%,rgba(232,181,58,.05),transparent 40%)}
+:root[data-theme="dark"] .splash{background:radial-gradient(circle at 50% 26%,#1D2331,var(--bg) 68%)}
+:root[data-theme="dark"] .btn:not(.ghost),:root[data-theme="dark"] .splash .btn,:root[data-theme="dark"] .chip.on{color:#0C0E13}
+:root[data-theme="dark"] .opt.ok .k,:root[data-theme="dark"] .opt.bad .k,:root[data-theme="dark"] .opt.sel .k{color:#0C0E13}
+
+/* ===== الحساب أعلى الشاشة ===== */
+.acct{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:right;padding:2px 0}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 4px 12px color-mix(in srgb,var(--primary) 35%,transparent)}
+:root[data-theme="dark"] .av{color:#0C0E13}
+.bcol{display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;min-width:0}
+.bcol b{font-size:15px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bcol small{font-size:11px;color:var(--muted);font-weight:700}
+.bcol small[hidden]{display:none}
+.dacct{display:flex;align-items:center;gap:12px;width:100%;text-align:right;padding:12px;margin-bottom:8px;border-radius:16px;background:color-mix(in srgb,var(--primary) 10%,var(--bg));border:1px solid var(--line)}
+.dacct .av{width:46px;height:46px;font-size:19px}
+.pfx{flex:none;color:var(--primary);font-weight:800;font-size:18px}
+
+/* ===== التنبيهات المنبثقة (Toast) ===== */
+.toasts{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 16vh);z-index:400;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 18px;pointer-events:none}
+.toast{--tcol:#3C7BE0;pointer-events:auto;display:flex;align-items:center;gap:9px;max-width:min(340px,100%);padding:8px 14px 8px 10px;border-radius:99px;color:#fff;font-weight:700;font-size:13.5px;line-height:1.5;
+  background:color-mix(in srgb,var(--tcol) 72%,transparent);border:1px solid color-mix(in srgb,#fff 28%,transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 8px 24px rgba(0,0,0,.22);animation:tIn .32s cubic-bezier(.2,.9,.3,1.1) both;cursor:pointer}
+.toast.ok{--tcol:#12A37A}.toast.err{--tcol:#E0364D}.toast.warn{--tcol:#E8A317;color:#2b1f00}.toast.info{--tcol:#3C7BE0}
+.toast .ti{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.26)}
+.toast.warn .ti{background:rgba(0,0,0,.12)}
+.toast .ti svg{width:14px;height:14px}
+.toast .tm{flex:1}
+.toast.out{animation:tOut .24s ease forwards}
+@keyframes tIn{from{opacity:0;transform:translateY(16px) scale(.94)}}
+@keyframes tOut{to{opacity:0;transform:translateY(10px) scale(.95)}}
+
+/* ===== النوافذ المنبثقة ===== */
+body.lock{overflow:hidden}
+.modal-bg{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,12,30,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;transition:opacity .22s}
+.modal-bg.show{opacity:1}
+.modal{--mc:var(--primary);width:min(520px,100%);max-height:90vh;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border-radius:28px 28px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 50px rgba(0,0,0,.35);transform:translateY(40px) scale(.98);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.3,1.1),opacity .22s}
+.modal-bg.show .modal{transform:none;opacity:1}
+@media (min-width:600px){.modal-bg{align-items:center;padding:20px}.modal{border-radius:28px;max-height:86vh}}
+.mh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.mico{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;color:#fff;flex:none;background:linear-gradient(135deg,var(--mc),color-mix(in srgb,var(--mc) 62%,#fff));box-shadow:0 8px 20px color-mix(in srgb,var(--mc) 35%,transparent)}
+.mt{flex:1;min-width:0}.mt h2{font-size:20px;line-height:1.4}.mt p{color:var(--muted);font-size:14px;line-height:1.7;margin-top:2px}
+.icon-btn.sm{width:36px;height:36px;border-radius:12px;box-shadow:none;background:var(--bg);flex:none}
+.mdots{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.mdots i{width:26px;height:6px;border-radius:99px;background:var(--line);transition:background .3s}
+.mdots i.on{background:var(--mc)}
+.mdots span{margin-inline-start:auto;font-size:12px;font-weight:800;color:var(--muted)}
+.modal .crumbs{margin:0 0 12px}
+.mb{overflow:auto;min-height:0;flex:1;padding:3px}
+.mb:empty{display:none}
+.mf{display:flex;gap:10px;margin-top:14px}
+.mf .btn{flex:1;padding:13px 18px;font-size:17px}.mf .btn.ghost{flex:.75}
+.btn.danger{background:linear-gradient(135deg,var(--bad),color-mix(in srgb,var(--bad) 70%,#fff));box-shadow:0 8px 20px color-mix(in srgb,var(--bad) 35%,transparent);color:#fff!important}
+.mlist{display:grid;gap:10px}
+.mlist .tile{padding:14px 16px;box-shadow:none;border:2px solid var(--line);width:100%}
+.mlist .tile .ico{width:48px;height:48px}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.badge{min-width:26px;height:26px;padding:0 8px;border-radius:99px;display:grid;place-items:center;background:var(--tc,var(--primary));color:#fff;font-weight:800;font-size:13px}
+.stile{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;border:2px solid var(--line);border-radius:18px;background:var(--bg);cursor:pointer;transition:border-color .2s,background .2s,transform .15s}
+.stile:active{transform:scale(.98)}
+.stile input{position:absolute;opacity:0;pointer-events:none}
+.stile .ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--tc);color:#fff;flex:none}
+.stile .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.stile b{font-size:16px;line-height:1.45}.stile small{color:var(--muted);font-size:13px}
+.stile .tick{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;flex:none;transition:all .2s}
+.stile.on{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 10%,var(--card))}
+.stile.on .tick{background:var(--tc);border-color:var(--tc);color:#fff}
+.stile:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.stile.off{opacity:.5;cursor:not-allowed}
+.inwrap{display:flex;align-items:center;gap:10px;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:0 14px;color:var(--muted);transition:border-color .2s}
+.inwrap:focus-within{border-color:var(--primary)}
+.inwrap.bad{border-color:var(--bad);animation:shake .4s}
+.inwrap input{border:0!important;background:none!important;padding:13px 0!important;outline:none!important;font-size:17px}
+.bgrp small{display:block;color:var(--muted);font-weight:700;margin:10px 0 6px;font-size:12px}
+.schip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px 6px 12px;border-radius:99px;font-weight:800;font-size:13px;color:var(--ink);background:color-mix(in srgb,var(--c) 14%,var(--card));border:1.5px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.schip svg:first-child{color:var(--c)}
+.schip:active{transform:scale(.95)}
+
+.pickbox{display:flex;align-items:center;gap:12px;width:100%;text-align:right;background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:12px 14px;transition:border-color .2s,transform .15s}
+.pickbox:hover{border-color:var(--primary)}.pickbox:active{transform:scale(.98)}
+.pickbox .ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex:none;background:var(--tc,var(--primary));color:#fff}
+.pickbox .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pickbox b{font-size:16px;line-height:1.5}.pickbox small{color:var(--muted);font-size:12.5px;line-height:1.6}
+.pickbox.empty .ico{background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.pickbox .go{color:var(--muted)}
+.hint{white-space:pre-line;direction:rtl;font-size:13.5px;line-height:1.9;color:var(--muted);background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:6px}
+.tag.new{background:color-mix(in srgb,var(--accent) 25%,var(--card));color:#8a6200}
+:root[data-theme="dark"] .tag.new{color:var(--accent)}
+.tree summary{list-style:none}.tree summary::-webkit-details-marker{display:none}
+.tree summary::before{content:"";flex:none;width:0;height:0;border-style:solid;border-width:5px 8px 5px 0;border-color:transparent var(--muted) transparent transparent;transition:transform .2s}
+.tree details[open]>summary::before{transform:rotate(-90deg)}
+.pastTag{background:color-mix(in srgb,var(--accent) 26%,var(--card));color:#8a6200;margin-inline-start:6px}
+:root[data-theme="dark"] .pastTag{color:var(--accent)}
+.codechip{display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:Consolas,Menlo,monospace;font-weight:800;font-size:12.5px;letter-spacing:.4px;color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent);border:1px dashed color-mix(in srgb,var(--primary) 45%,transparent);padding:2px 10px;border-radius:10px;width:fit-content}
+button.codechip{cursor:pointer}button.codechip:active{transform:scale(.96)}
+.sres{display:grid;gap:10px;margin:12px 0 4px}
+.qcard,.rev{position:relative}
+.rpt{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--muted);background:var(--bg);opacity:.8;transition:color .2s,opacity .2s}
+.rpt:hover,.rpt:focus-visible{color:var(--bad);opacity:1}
+.rev{padding-left:48px}
+/* إصلاح تداخل زر الإبلاغ مع النص */
+.qhead{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px}
+.qtags{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px}
+.qtags .qtag,.qtags .pastTag{margin:0}
+.qhead .rpt{position:static;flex:none}
+.rev .rpt~b{display:block;padding-left:40px}
+</style></head><body>
+<!-- شاشة الترحيب -->
+<div class="splash" id="splash">
+  <div class="logo" id="splashLogo"></div>
+  <h1>مرحباً بكم في الجامعة الإماراتية الدولية</h1>
+  <p>منصة الكويزات التعليمية</p>
+  <button class="btn" id="startBtn">ابدأ الآن</button>
+</div>
+<div class="app">
+  <div class="top">
+    <button class="icon-btn" id="menuBtn" aria-label="القائمة"></button>
+    <button class="icon-btn" id="backBtn" hidden aria-label="رجوع"></button>
+    <button class="brand" id="brandBtn" aria-label="الصفحة الرئيسية"><span id="brandLogo"></span><span>منصة الكويزات</span></button>
+    <button class="icon-btn" id="themeBtn" aria-label="تبديل الوضع الليلي"></button>
+  </div>
+  <main id="view"></main>
+  <div class="footer">
+    <div class="dev">
+      <span>تطوير: م. محمد الربيعي</span>
+      <a href="tel:+967778844449" aria-label="اتصال بالمطور" id="phoneLink"></a>
+    </div>
+  </div>
+</div>
+<div class="drawer-bg" id="dbg"></div><aside class="drawer" id="drawer" aria-label="قائمة التنقل"></aside>
+<script>
+/* ==================================================================
+   📘 قسم البيانات — كل ما تحتاج تعديله موجود في هذا القسم فقط
+   ==================================================================
+   البناء (كل مستوى داخل تخصص، وكل ترم داخل مستوى، وكل مادة داخل ترم):
+
+       SPEC("اسم التخصص", "أيقونة", "#لون", [
+         LEVEL("المستوى الأول", [
+           TERM("الترم الأول",  [ sub("arabic"), sub("math1", {...}) ]),
+           TERM("الترم الثاني", [ ... ])
+         ])
+       ])
+
+   ▸ كل ترم في كل تخصص مستقل تماماً: أسئلة مادة في الترم الأول لا تظهر في الثاني،
+     ولا في أي تخصص آخر حتى لو كانت المادة بنفس الاسم.
+   ▸ مادة في ترم          : sub("مفتاح_المادة")  داخل TERM الخاص بها.
+   ▸ مادة بأسئلة          : sub("circuits", { mcq:`...`, tf:`...` })
+   ▸ مادة خاصة بتخصص      : sub({ name:"اسم المادة", icon:"book", color:"#1F4E96" }, { mcq:`...` })
+   ▸ مادة جديدة دائمة     : أضف سطراً في LIB ثم استخدم مفتاحها في أي ترم.
+   ▸ ترم/مستوى/تخصص جديد  : انسخ القالب في آخر SPECS (داخل التعليق) وعدّل الأسماء.
+   ▸ أيقونات: cog bolt sigma triangle chat globe book layers
+   ▸ لا تغيّر اسم الترم أو المادة بعد بدء الطلاب بالاستخدام (يرتبط تقدمهم بالاسم).
+   ▸ أي خطأ في الكتابة (اسم مكرر، مفتاح مادة خاطئ، لون/أيقونة غير صحيحة، سؤال غير مقروء)
+     لا يُعطّل التطبيق: يُتجاهل ويظهر لك تنبيه في «فهرس المحتوى» من القائمة (نقطة حمراء ●).
+
+   ▸ صيغة الاختيار من متعدد (mcq): سطر السؤال ثم الاختيارات، علامة * بعد الصحيح،
+     وبعده توضيح اختياري بين قوسين (يظهر زر «توضيح السؤال»)، وسطر فارغ بين الأسئلة:
+          ما وحدة قياس المقاومة؟
+          الفولت
+          الأوم* (R = V / I)
+          الأمبير
+   ▸ صيغة صح/خطأ (tf) سطر لكل سؤال:   نص السؤال ✔    أو   نص السؤال ✘ (توضيح)
+*/
+const PHONE    = "778844449";        // رقم الجوال بدون صفر وبدون رمز الدولة
+const WHATSAPP = "967" + PHONE;      // يُستخدم لإرسال الأسئلة والاقتراحات
+
+/* مكتبة المواد (الاسم والأيقونة واللون فقط – الأسئلة تُكتب داخل كل ترم) */
+const UR = "#C8202F", FA = "#0F6B50", EL = "#D9822B", ME = "#1F4E96", CT = "#7048C9", CP = "#0C8599", PR = "#B5398A";
+const LIB = {
+  /* متطلبات الجامعة */
+  ar1:{ name:"Arabic Language Skills (1)",  icon:"pen",      color:UR },
+  ar2:{ name:"Arabic Language Skills (2)",  icon:"pen",      color:UR },
+  en1:{ name:"English Language Skills (1)", icon:"globe",    color:UR },
+  en2:{ name:"English Language Skills (2)", icon:"globe",    color:UR },
+  cu1:{ name:"Culture (1)",                 icon:"landmark", color:UR },
+  cu2:{ name:"Culture (2)",                 icon:"landmark", color:UR },
+  cu3:{ name:"Culture (3)",                 icon:"landmark", color:UR },
+  comp:{ name:"Computer Skills",            icon:"laptop",   color:UR },
+  /* متطلبات الكلية */
+  m1:{ name:"Mathematics (1)",              icon:"sigma",    color:FA },
+  m2:{ name:"Mathematics (2)",              icon:"integral", color:FA },
+  phy:{ name:"Physics",                     icon:"atom",     color:FA },
+  draw:{ name:"Engineering Drawing",        icon:"ruler",    color:FA },
+  prob:{ name:"Probability & Statistics",   icon:"dice",     color:FA },
+  life:{ name:"Life Skills",                icon:"users",    color:FA },
+  res:{ name:"Research Methodology",        icon:"search",   color:FA },
+  epm:{ name:"Engineering Projects Management", icon:"clipboard", color:FA },
+  /* متطلبات البرنامج */
+  stat:{ name:"Engineering Mechanics – Statics",  icon:"balance", color:ME },
+  dyn:{ name:"Engineering Mechanics – Dynamics",  icon:"motion",  color:ME },
+  circ1:{ name:"Electrical Circuits (1)",   icon:"battery",  color:EL },
+  circ2:{ name:"Electrical Circuits (2)",   icon:"resistor", color:EL },
+  emath:{ name:"Engineering Mathematics",   icon:"pi",       color:FA },
+  elec:{ name:"Electronics",                icon:"diode",    color:EL },
+  mat:{ name:"Properties and Strength of Materials", icon:"ibeam", color:ME },
+  logic:{ name:"Logic Systems Design",      icon:"gate",     color:CP },
+  mach1:{ name:"Electrical Machines (1)",   icon:"motor",    color:EL },
+  mach2:{ name:"Electrical Machines (2)",   icon:"generator",color:EL },
+  therm:{ name:"Thermodynamics and Heat Transfer", icon:"thermo", color:"#D9462B" },
+  sig:{ name:"Signals and Systems",         icon:"wave",     color:CT },
+  manuf:{ name:"Manufacturing Processes",   icon:"factory",  color:ME },
+  prog:{ name:"Programming Fundamentals",   icon:"code",     color:CP },
+  work:{ name:"Engineering Workshop",       icon:"wrench",   color:ME },
+  acs:{ name:"Analog Control Systems",      icon:"loop",     color:CT },
+  tom:{ name:"Theory of Machines",          icon:"cog",      color:ME },
+  fluid:{ name:"Fluid Mechanics",           icon:"droplet",  color:"#1E88C8" },
+  inet:{ name:"Industrial Networks",        icon:"network",  color:CP },
+  instr:{ name:"Instrumentation and Measurements", icon:"gauge", color:CT },
+  micro:{ name:"Microprocessors & Microcontrollers", icon:"chip", color:CP },
+  pe:{ name:"Power Electronics & Drives",   icon:"power",    color:EL },
+  dcs:{ name:"Digital Control Systems",     icon:"sliders",  color:CT },
+  dme:{ name:"Design of Machine Elements",  icon:"nut",      color:ME },
+  hyd:{ name:"Hydraulic & Pneumatic Systems", icon:"cylinder", color:"#1E88C8" },
+  pfe:{ name:"Programming for Engineers",   icon:"terminal", color:CP },
+  emb:{ name:"Embedded Systems & Interfacing", icon:"board", color:CP },
+  msd:{ name:"Mechatronics Systems Design", icon:"puzzle",   color:PR },
+  isq:{ name:"Industrial Statistics & Quality Control", icon:"trend", color:FA },
+  auto:{ name:"Industrial Automation",      icon:"workflow", color:CT },
+  ai:{ name:"Artificial Intelligence",      icon:"brain",    color:PR },
+  elect1:{ name:"Elective Course (1)",      icon:"star",     color:"#E8A317" },
+  plc:{ name:"Programmable Logic Controllers", icon:"plc",  color:CT },
+  rob:{ name:"Robotics",                    icon:"bot",      color:PR },
+  gp1:{ name:"Graduation Project (1)",      icon:"grad",     color:PR },
+  gp2:{ name:"Graduation Project (2)",      icon:"grad",     color:PR },
+  train:{ name:"Industrial Training",       icon:"hardhat",  color:"#D9822B" }
+};
+const sub = (k, q = {}) => {
+  const b = typeof k === "string" ? LIB[k] : k;
+  return b ? { ...b, mcq:"", tf:"", ...q } : { name:"⚠ " + k, key:k, missing:true, mcq:"", tf:"", ...q };
+};
+/* دوال البناء — تضمن شكلاً موحداً للبيانات */
+const SPEC  = (name, icon, color, levels, tag)  => ({ name, icon, color, levels, tag });
+const LEVEL = (name, terms)                => ({ name, terms });
+const TERM  = (name, subjects)             => ({ name, subjects });
+
+const SPECS = [
+  /* الخطة الدراسية المعتمدة لبرنامج هندسة الميكاترونكس – نظام 4 سنوات (151 ساعة) – قرار وزاري 107 لسنة 1447هـ */
+  SPEC("هندسة الميكاترونكس", "cog", "#1F4E96", [
+
+    LEVEL("المستوى الأول", [
+      TERM("الترم الأول", [
+        sub("ar1", {
+          /* ⭐ = أسئلة جاءت في امتحان نهاية الفصل الأول (2026-2027) */
+          mcq:`
+⭐2026 من أهمية الاستماع:
+اكتشاف الأفكار
+نطق الحروف
+الثقة بالنفس
+التدريب على حسن الإصغاء*
+
+⭐2026 هي رسم لرموز الكلمات في أشكال متعارف عليها:
+القراءة
+الإلقاء
+الكتابة*
+المهارة
+
+⭐2026 من علامات فعل الأمر:
+قبول حروف النداء
+دلالته على الطلب*
+الإعراب بالحركات الأصلية
+دخول أدوات الجزم عليه
+
+⭐2026 مهارة التحدث:
+مكتسبة*
+فطرية
+تستند على القراءة
+تقيس شخصية الفرد
+`,
+          tf:`
+⭐2026 السكون علامة إعراب بالأفعال في حالة الجزم. ✔ (السكون علامة جزم الفعل المضارع الصحيح الآخر)
+⭐2026 جمع المذكر السالم يعرب بعلامات إعراب أصلية. ✘ (يعرب بالواو رفعاً وبالياء نصباً وجراً، وهي علامات فرعية)
+⭐2026 الهمزة في مصدر الخماسي والسداسي همزة قطع. ✘ (همزة وصل)
+⭐2026 القراءة لا تنمي الوعي المعرفي للقارئ. ✘ (القراءة تنمي الوعي المعرفي)
+⭐2026 أسلوب الشرط يعرب بعلامات إعراب أصلية إذا كان صحيحاً. ✔
+⭐2026 مهارات القراءة الجهرية مهارات أدائية. ✔
+⭐2026 همزة الوصل في بداية الكلمة ترسم ألفاً نطقاً وشكلاً. ✘ (ترسم ألفاً ولا تنطق)
+⭐2026 تكتب الهمزة آخر الكلمة على الواو إذا كان ما قبلها مفتوح. ✘ (تكتب على الألف إذا كان ما قبلها مفتوحاً)
+⭐2026 الحروف كلها مبنية. ✔
+⭐2026 الكسر علامة إعراب تختص بالحروف. ✘ (الكسر علامة جر تختص بالأسماء)
+`
+        }),
+        sub("en1"), sub("cu1"), sub("m1"), sub("phy"), sub("stat"),
+        sub("circ1", {
+          mcq:`
+ما وحدة قياس المقاومة الكهربائية؟
+الفولت
+الأوم* (حسب قانون أوم: المقاومة = الجهد ÷ التيار)
+الأمبير
+الواط
+`,
+          tf:`
+التيار الكهربائي يقاس بوحدة الأمبير ✔
+`
+        })
+      ]),
+      TERM("الترم الثاني", [
+        sub("ar2"), sub("en2"), sub("comp"), sub("m2"), sub("draw"), sub("dyn"), sub("circ2")
+      ])
+    ]),
+
+    LEVEL("المستوى الثاني", [
+      TERM("الترم الأول", [
+        sub("prob"), sub("life"), sub("emath"), sub("elec"), sub("mat"), sub("logic"), sub("mach1")
+      ]),
+      TERM("الترم الثاني", [
+        sub("cu2"), sub("therm"), sub("sig"), sub("manuf"), sub("prog"), sub("mach2"), sub("work")
+      ])
+    ]),
+
+    LEVEL("المستوى الثالث", [
+      TERM("الترم الأول", [
+        sub("cu3"), sub("res"), sub("acs"), sub("tom"), sub("fluid"), sub("inet"), sub("instr")
+      ]),
+      TERM("الترم الثاني", [
+        sub("micro"), sub("pe"), sub("dcs"), sub("dme"), sub("hyd"), sub("pfe")
+      ])
+    ]),
+
+    LEVEL("المستوى الرابع", [
+      TERM("الترم الأول", [
+        sub("emb"), sub("msd"), sub("isq"), sub("auto"), sub("ai"), sub("elect1")
+      ]),
+      TERM("الترم الثاني", [
+        sub("epm"), sub("plc"), sub("rob"), sub("gp1")
+      ]),
+      TERM("الترم الصيفي", [
+        sub("train"), sub("gp2")
+      ])
+    ])
+  ], "MEC"),
+
+  /* تخصصات بدون تفاصيل بعد (تُضاف المستويات والأترام والمواد لاحقاً) */
+  SPEC("هندسة مدنية",           "building", "#8A6A2F", [], "CIV"),
+  SPEC("هندسة معدات طبية",      "heartpulse","#C23B6B", [], "BME"),
+  SPEC("هندسة نفط وغاز",        "flame",    "#D9622B", [], "OGE"),
+  SPEC("ذكاء اصطناعي",          "brain",    "#7048C9", [], "AIE"),
+  SPEC("تقنية معلومات",         "server",   "#0C8599", [], "ITE")
+
+  /* ───── قالب مستوى/ترم جديد داخل تخصص ─────
+  LEVEL("المستوى الأول", [
+    TERM("الترم الأول",  [ sub("ar1"), sub({ name:"Course Name", icon:"book", color:"#1F4E96" }) ]),
+    TERM("الترم الثاني", [ ... ])
+  ])
+  */
+];
+
+const SETTINGS = {
+  passPercent:50,
+  labels:["أ","ب","ج","د","هـ","و"],
+  messages:{
+    great:["ممتاز! أداء رائع","أحسنت، أنت مبدع!"],
+    good:["جيد جداً، استمر"],
+    ok:["نتيجة جيدة، حاول مرة أخرى للتحسن"],
+    low:["لا بأس! راجع الدرس وأعد المحاولة"]
+  }
+};
+
+/* ==================================================================
+   🧠 المحرك — لا تحتاج تعديل ما بعد هذا السطر
+   ================================================================== */
+/* ---------- الأيقونات ---------- */
+const ICONS = {
+  cog:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  sigma:'<path d="M18 7V4H6l6 8-6 8h12v-3"/>',
+  triangle:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  layers:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/>',
+  back:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  next:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  chev:'<path d="m15 18-6-6 6-6"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  toggle:'<rect x="1" y="5" width="22" height="14" rx="7"/><circle cx="16" cy="12" r="3"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  steps:'<path d="M18 20V10M12 20V4M6 20v-6"/>',
+  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  refresh:'<path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'
+};
+const icon = (n, s=24, sw=2) =>
+  `<svg class="i" viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]||ICONS.book}</svg>`;
+
+/* ---------- شعار الجامعة الإماراتية الدولية (SVG مرسوم بالقياس من الصورة الأصلية) ---------- */
+function logoSVG(u="a"){
+  const star=(x,y,r,cls="",fill="#fff")=>{
+    let p=[]; for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.4:r; p.push((x+rr*Math.cos(a)).toFixed(1)+","+(y+rr*Math.sin(a)).toFixed(1));}
+    return `<polygon points="${p.join(" ")}" ${cls?`class="${cls}"`:`fill="${fill}"`}/>`;
+  };
+  /* أوراق إكليل الغار (غصنان يحيطان بالقبعة) */
+  let leaves="";
+  for(let i=0;i<7;i++){
+    const t=i/6, y=64-27*t, x=174-5.5*Math.sin(Math.PI*t), rot=-18+i*3;
+    [[x,rot],[x+3.4,rot+95]].forEach(([lx,r])=>{
+      leaves+=`<ellipse cx="${lx.toFixed(1)}" cy="${y.toFixed(1)}" rx="4.1" ry="1.5" transform="rotate(${r} ${lx.toFixed(1)} ${y.toFixed(1)})"/>`;
+    });
+  }
+  const rightLeaves=`<g transform="translate(388 0) scale(-1 1)">${leaves}</g>`;
+  const inner="M150 10 Q124 26 76 34 L76 90 Q79 145 150 188 Q221 145 224 90 L224 34 Q176 26 150 10 Z";
+  const outer="M150 1 Q118 20 67 30 L67 90 Q70 150 150 196 Q230 150 233 90 L233 30 Q182 20 150 1 Z";
+  /* خطوط لمعان الشريط */
+  let gloss="";
+  for(let k=1;k<=5;k++){const f=k/6;
+    gloss+=`<path d="M${(60+6*f).toFixed(1)} ${(150+38*f).toFixed(1)} Q150 ${(112+28*f).toFixed(1)} ${(240-6*f).toFixed(1)} ${(150+38*f).toFixed(1)}" fill="none" stroke="#fff" stroke-opacity="${k%2?.16:.09}" stroke-width="1.3"/>`;
+  }
+  return `<svg viewBox="0 0 300 304" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شعار الجامعة الإماراتية الدولية">
+  <defs>
+    <linearGradient id="nv${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10305C"/><stop offset="1" stop-color="#0B2247"/></linearGradient>
+    <linearGradient id="nb${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#11315A"/><stop offset="1" stop-color="#23508F"/></linearGradient>
+    <linearGradient id="rd${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EE2634"/><stop offset="1" stop-color="#DB1F2E"/></linearGradient>
+    <linearGradient id="gr${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0F6B54"/><stop offset="1" stop-color="#1B7C63"/></linearGradient>
+    <linearGradient id="rb${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F2533C"/><stop offset=".45" stop-color="#DB3640"/><stop offset="1" stop-color="#AE1F47"/></linearGradient>
+    <linearGradient id="tl${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F4573F"/><stop offset="1" stop-color="#DC3541"/></linearGradient>
+    <linearGradient id="tr${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C5263F"/><stop offset="1" stop-color="#EE4B3F"/></linearGradient>
+    <linearGradient id="fl${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E4590"/><stop offset="1" stop-color="#132C63"/></linearGradient>
+    <clipPath id="cl${u}"><path d="${inner}"/></clipPath>
+    <path id="arc${u}" d="M92 165 Q150 146 208 165"/>
+  </defs>
+
+  <!-- الدرع: حدود كحلية + حافة تظهر في الوضع الليلي -->
+  <path d="${outer}" fill="url(#nv${u})"/>
+  <path d="${outer}" fill="none" class="le" stroke-width="1.6"/>
+  <path d="${inner}" fill="url(#nb${u})"/>
+  <g clip-path="url(#cl${u})">
+    <polygon points="70,0 150,0 150,77 70,79" fill="url(#rd${u})"/>
+    <polygon points="150,0 230,0 230,86 150,77" fill="url(#gr${u})"/>
+  </g>
+  <path d="${inner}" fill="none" stroke="#fff" stroke-width="2"/>
+
+  <!-- الكتاب المفتوح -->
+  <g transform="translate(115 50) rotate(-9)">
+    <path d="M-18 13 Q-8 8 0 14 Q8 8 18 13" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-17 -10 Q-8 -14 0 -8 L0 11 Q-8 6 -17 9 Z" fill="#fff"/>
+    <path d="M17 -10 Q8 -14 0 -8 L0 11 Q8 6 17 9 Z" fill="#F2F2F2"/>
+    <g stroke="#E8222F" stroke-width=".9" stroke-linecap="round" opacity=".7">
+      <path d="M-14 -5 Q-8 -8 -3 -4M-14 -1 Q-8 -4 -3 0M-14 3 Q-8 0 -3 4"/>
+      <path d="M14 -5 Q8 -8 3 -4M14 -1 Q8 -4 3 0M14 3 Q8 0 3 4"/>
+    </g>
+  </g>
+
+  <!-- قبعة التخرج وإكليل الغار -->
+  <g fill="#B9CAB1">${leaves}${rightLeaves}</g>
+  <g transform="rotate(-6 193 48)">
+    <path d="M180 50 L180 58 Q193 64 206 58 L206 50 L193 55 Z" fill="#0D1521"/>
+    <polygon points="172,47 193,39 215,45 194,54" fill="#161F2E"/>
+    <polygon points="172,47 193,39 194,46" fill="#243247"/>
+    <path d="M194 46 L208 49 L208 66" fill="none" stroke="#E3A92E" stroke-width="1.7" stroke-linecap="round"/>
+    <rect x="206.2" y="65" width="3.6" height="8" rx="1.6" fill="#E3A92E"/>
+  </g>
+
+  <!-- الاسم العربي داخل الدرع -->
+  <g fill="#fff" font-family="Cairo,'Segoe UI',Tahoma,Arial,sans-serif" font-weight="500" text-anchor="middle">
+    <text x="154" y="97" font-size="25" textLength="84" lengthAdjust="spacingAndGlyphs">الإماراتية</text>
+    <text x="152" y="122" font-size="25" textLength="76" lengthAdjust="spacingAndGlyphs">الدولية</text>
+  </g>
+
+  <!-- ثنيات الشريط الداخلية (كحلية) -->
+  <path d="M64 168 L111 164 L115 182 L90 195 L64 194 Z" fill="url(#fl${u})"/>
+  <path d="M236 168 L189 164 L185 182 L210 195 L236 194 Z" fill="url(#fl${u})"/>
+
+  <!-- ذيلا الشريط -->
+  <path d="M64 170 Q40 172 22 186 Q12 195 9 204 L32 198 L28 212 Q46 206 64 193 Z" fill="url(#tl${u})"/>
+  <path d="M236 170 Q260 172 278 186 Q288 195 291 204 L268 198 L272 212 Q254 206 236 193 Z" fill="url(#tr${u})"/>
+  <g stroke="#fff" stroke-opacity=".18" stroke-width="1.2" fill="none">
+    <path d="M62 176 Q38 178 20 192M62 183 Q42 185 26 196M62 189 Q46 191 32 200"/>
+    <path d="M238 176 Q262 178 280 192M238 183 Q258 185 274 196M238 189 Q254 191 268 200"/>
+  </g>
+
+  <!-- الشريط الرئيسي -->
+  <path d="M60 150 Q150 112 240 150 L234 188 Q150 140 66 188 Z" fill="url(#rb${u})"/>
+  ${gloss}
+  <path d="M60 150 Q150 112 240 150" fill="none" stroke="#FF9A8F" stroke-opacity=".6" stroke-width="1.2"/>
+  <text font-family="Cairo,'Segoe UI',Tahoma,Arial,sans-serif" font-weight="600" font-size="25" fill="#fff" text-anchor="middle">
+    <textPath href="#arc${u}" startOffset="50%">الجامعة</textPath>
+  </text>
+
+  <!-- النجوم الثلاث -->
+  ${star(132,174,5.6)}${star(151,174,5.6)}${star(170,174,5.6)}
+
+  <!-- الاسم الإنجليزي -->
+  <g direction="ltr" style="unicode-bidi:isolate" font-family="'Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif">
+    <text x="53" y="263" class="lr" textLength="194" lengthAdjust="spacing"><tspan font-size="46">E</tspan><tspan font-size="34">MIRATE</tspan><tspan font-size="46">S</tspan></text>
+    <path d="M142 262 Q168 282 205 272" fill="none" class="lrs" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="53" y="283" class="ln" font-size="21" textLength="194" lengthAdjust="spacing">INTERNATIONAL</text>
+    <text x="100" y="299" class="ln" font-size="15" font-style="italic" textLength="102" lengthAdjust="spacing">UNIVERSITY</text>
+  </g>
+  ${star(55,293,3,"ln")}${star(67,293,3,"ln")}${star(79,293,3,"ln")}${star(221,293,3,"ln")}${star(233,293,3,"ln")}${star(245,293,3,"ln")}
+</svg>`;
+}
+
+/* ---------- أدوات عامة ---------- */
+const $ = s => document.querySelector(s);
+const view = $("#view"), backBtn = $("#backBtn");
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]} return a };
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pick = a => a[Math.random()*a.length|0];
+const COLORS = ["#1F4E96","#C8202F","#0F6B50","#D9822B","#7048C9","#0C8599"];
+Object.assign(ICONS,{
+flag:'<path d="M4 22V4M4 4h13l-2 4 2 4H4"/>',
+pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/><path d="m14 6 4 4"/>',
+landmark:'<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2 3 7h18z"/>',
+laptop:'<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20"/>',
+integral:'<path d="M15 3c-2.5 0-3 1.5-3 3.5v11c0 2-.5 3.5-3 3.5"/><path d="M9 7h2M13 17h2"/>',
+atom:'<circle cx="12" cy="12" r="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>',
+ruler:'<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/>',
+dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1"/><circle cx="16" cy="8" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/>',
+users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+clipboard:'<rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 2h6v4H9zM9 12h6M9 16h6"/>',
+balance:'<path d="M12 3v18M5 21h14M4 8h16"/><path d="m4 8-2 6a3 3 0 0 0 4 0zM20 8l-2 6a3 3 0 0 0 4 0z"/>',
+motion:'<path d="M4 12h12M12 6l6 6-6 6"/><path d="M2 7h4M2 17h4"/>',
+battery:'<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M7 10v4M11 10v4"/>',
+resistor:'<path d="M2 12h3l2-5 3 10 3-10 2 5h7"/>',
+pi:'<path d="M5 7h14M9 7v12M15 7v9a3 3 0 0 0 3 3"/>',
+diode:'<path d="M2 12h6M16 12h6M8 5v14l8-7zM16 5v14"/>',
+ibeam:'<path d="M5 4h14M5 20h14M12 4v16"/>',
+gate:'<path d="M5 5h6a7 7 0 0 1 0 14H5z"/><path d="M1 9h4M1 15h4M18 12h5"/>',
+motor:'<rect x="5" y="6" width="12" height="12" rx="2"/><path d="M17 10h3v4h-3M5 9H3v6h2M9 6V4h4v2"/>',
+generator:'<circle cx="12" cy="12" r="9"/><path d="M7 14c1.5-4 3-4 5 0s3.5 4 5 0"/>',
+thermo:'<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>',
+wave:'<path d="M2 12c2.5-9 4.5-9 7 0s4.5 9 7 0 3-5 6-3"/>',
+factory:'<path d="M2 21V10l6 4v-4l6 4V5h4v16z"/><path d="M2 21h20"/>',
+code:'<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
+wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+loop:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+droplet:'<path d="M12 2.7 6.5 9a8 8 0 1 0 11 0z"/>',
+network:'<rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-5h14v5"/>',
+gauge:'<path d="M3 17a9 9 0 1 1 18 0"/><path d="m12 17 4-6"/><circle cx="12" cy="17" r="1"/>',
+chip:'<rect x="6" y="6" width="12" height="12" rx="1"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+power:'<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/>',
+sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+nut:'<path d="M12 2 20 7v10l-8 5-8-5V7z"/><circle cx="12" cy="12" r="3"/>',
+cylinder:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/>',
+terminal:'<path d="m4 17 6-5-6-5M12 19h8"/>',
+board:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="7.5" cy="8.5" r="1"/><circle cx="16.5" cy="15.5" r="1"/><path d="M8 8.5h4v7h4"/>',
+puzzle:'<path d="M4 4h6v3a2 2 0 1 0 4 0V4h6v6h-3a2 2 0 1 0 0 4h3v6H4z"/>',
+trend:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/>',
+workflow:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4a3 3 0 0 1 3 3V14"/>',
+brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a2 2 0 0 0-3-1z"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/><path d="M12 5v13"/>',
+plc:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h4M7 12h10M7 16h6"/><circle cx="16" cy="8" r="1"/>',
+bot:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 13v1M15 13v1M9 17h6"/><circle cx="12" cy="3" r="1"/>',
+grad:'<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5M22 9v6"/>',
+hardhat:'<path d="M3 18h18v2H3zM5 18a7 7 0 0 1 14 0M12 5v6M9 6.5v4.5M15 6.5v4.5"/>',
+building:'<rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4M8 6h2M14 6h2M8 10h2M14 10h2M8 14h2M14 14h2"/>',
+heartpulse:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/><path d="M3 12h4l2-3 3 6 2-3h3"/>',
+flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1-2-.3-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.4 1-3 0 1.4 1 2.5 2.5 2.5z"/>',
+server:'<rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/>'
+});
+Object.assign(ICONS,{menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',shuffle:'<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',plus:'<path d="M12 5v14M5 12h14"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6 0-10-7-10-7a18 18 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6 0 10 7 10 7a18 18 0 0 1-2.16 3.19M1 1l22 22"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/>',send:'<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',alert:'<path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'});
+
+/* ---------- نظام التنبيهات المنبثقة (تظهر ثم تختفي تلقائياً) ---------- */
+const toastBox=document.createElement("div");toastBox.className="toasts";toastBox.setAttribute("aria-live","polite");document.body.appendChild(toastBox);
+function toast(msg,type="info",ms=3000){
+  const el=document.createElement("div");el.className="toast "+type;el.setAttribute("role",type==="err"?"alert":"status");el.dataset.m=msg;
+  el.innerHTML=`<span class="ti">${icon({ok:"check",err:"x",warn:"alert",info:"bulb"}[type]||"bulb",14,3)}</span><span class="tm">${esc(msg)}</span>`;
+  [...toastBox.children].forEach(c=>{if(c.dataset.m===msg)c.remove()});
+  while(toastBox.children.length>=3)toastBox.firstChild.remove();
+  toastBox.appendChild(el);
+  let t;const kill=()=>{clearTimeout(t);el.classList.add("out");setTimeout(()=>el.remove(),270)};
+  el.onclick=kill;t=setTimeout(kill,ms);
+}
+let lastErr=0;
+const onFatal=()=>{const n=Date.now();if(n-lastErr>4000){lastErr=n;toast("حدث خطأ غير متوقع. إذا استمرت المشكلة أعد تحميل الصفحة.","err")}};
+window.addEventListener("error",onFatal);
+window.addEventListener("unhandledrejection",onFatal);
+
+/* ---------- النوافذ المنبثقة ---------- */
+let MODAL=null;
+function closeModal(now){
+  const m=MODAL;if(!m)return;MODAL=null;
+  document.removeEventListener("keydown",m.key);m.el.classList.remove("show");
+  const rm=()=>{m.el.remove();if(!MODAL)document.body.classList.remove("lock")};
+  now?rm():setTimeout(rm,230);
+}
+function showModal(o){
+  closeModal(true);
+  const el=document.createElement("div");el.className="modal-bg";
+  const canX=o.dismissible!==false;
+  el.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(o.title)}" style="--mc:${o.color||"var(--primary)"}">
+    <div class="mh">${o.back?`<button class="icon-btn sm" data-a="back" aria-label="رجوع">${icon("back",18)}</button>`:""}<span class="mico">${icon(o.icon||"book",26)}</span><div class="mt"><h2>${esc(o.title)}</h2>${o.sub?`<p>${esc(o.sub)}</p>`:""}</div>${canX?`<button class="icon-btn sm" data-a="x" aria-label="إغلاق">${icon("x",18)}</button>`:""}</div>
+    ${o.step?`<div class="mdots">${Array.from({length:o.steps||3},(_,k)=>`<i class="${k+1<=o.step?"on":""}"></i>`).join("")}<span>الخطوة ${o.step} من ${o.steps||3}</span></div>`:""}
+    ${o.crumbs?crumbs(...o.crumbs):""}
+    <div class="mb">${o.body||""}</div>${o.foot?`<div class="mf">${o.foot}</div>`:""}</div>`;
+  const key=e=>{if(e.key==="Escape"&&canX)closeModal()};
+  document.addEventListener("keydown",key);
+  MODAL={el,key,canX};document.body.classList.add("lock");document.body.appendChild(el);
+  el.onclick=e=>{if(e.target===el&&canX)closeModal()};
+  el.querySelectorAll('[data-a="x"]').forEach(b=>b.onclick=()=>closeModal());
+  el.querySelectorAll('[data-a="back"]').forEach(b=>b.onclick=()=>o.back());
+  requestAnimationFrame(()=>el.classList.add("show"));
+  if(o.bind)o.bind(el);
+  return el;
+}
+/* نافذة تأكيد احترافية بدل confirm() */
+function ask(o){
+  showModal({icon:o.danger?"alert":"bulb",color:o.danger?"var(--bad)":undefined,title:o.title||"تأكيد",sub:o.msg,
+    foot:`<button class="btn ghost" data-a="x">إلغاء</button><button class="btn ${o.danger?"danger":""}" data-a="ok">${o.yes||"تأكيد"}</button>`,
+    bind:m=>{const b=m.querySelector('[data-a="ok"]');b.onclick=()=>{closeModal();o.onYes&&o.onYes()};setTimeout(()=>b.focus(),250)}});
+}
+
+/* ---------- الحفظ المحلي ---------- */
+const store={get(k,d){try{const v=localStorage.getItem("qz_"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("qz_"+k,JSON.stringify(v))}catch(e){toast("تعذّر حفظ بياناتك على هذا الجهاز (قد يكون التخزين ممتلئاً أو معطّلاً).","err")}}};
+const U=Object.assign({fb:true,shufQ:true,shufO:true,skipSeen:false,count:10,fs:100,theme:null},store.get("set",{}));
+const saveU=()=>store.set("set",U);
+let PROG=store.get("prog",{}), HIST=store.get("hist",[]).filter(h=>!/^(كل\s)?أخطائي/.test((h&&h.title)||""));   /* PROG[qid] = {s:مادة, a:محاولات, c:صحيحة, l:آخر نتيجة, t:وقت} */
+/* ---------- اسم المستخدم (لا يُصفَّر مع بيانات التقدم) ---------- */
+let USER=store.get("name","");if(typeof USER!=="string")USER="";
+const NAME_RE=/^[\p{L}\p{M}][\p{L}\p{M}\s.'’-]*$/u;
+function cleanName(v){
+  v=String(v||"").replace(/^\s*م\s*[\/\\]\s*/,"").replace(/\s+/g," ").trim();
+  if(!v)return{err:"اكتب اسمك أولاً."};
+  if(v.length<2)return{err:"الاسم قصير جداً، اكتب حرفين على الأقل."};
+  if(v.length>30)return{err:"الاسم طويل جداً (الحد الأقصى 30 حرفاً)."};
+  if(!NAME_RE.test(v))return{err:"استخدم الحروف فقط في الاسم، بدون أرقام أو رموز."};
+  return{v};
+}
+function drawUser(){drawNav()}
+const fullName=()=>"م/ "+USER;
+function saveName(v){USER=v;store.set("name",v);drawUser()}
+function askName(done){
+  showModal({icon:"user",title:"أهلاً بك في المنصة",sub:"اكتب اسمك بعد «م/». سنستخدمه لتخصيص تجربتك وللترحيب بك في كل مرة.",dismissible:false,
+    body:`<div class="field" style="margin:4px 0 0"><label for="nmIn">اسمك</label><div class="inwrap" id="nmW">${icon("user",20)}<b class="pfx">م/</b><input type="text" id="nmIn" maxlength="30" autocomplete="given-name" placeholder="اكتب اسمك هنا" enterkeyhint="done"></div></div>`,
+    foot:`<button class="btn" data-a="ok">${icon("check",20,3)}حفظ ومتابعة</button>`,
+    bind:m=>{
+      const inp=m.querySelector("#nmIn"),w=m.querySelector("#nmW");
+      const ok=()=>{const r=cleanName(inp.value);
+        if(r.err){toast(r.err,"err");w.classList.remove("bad");void w.offsetWidth;w.classList.add("bad");inp.focus();return}
+        saveName(r.v);closeModal();toast("أهلاً بك يا باش مهندس "+r.v+"، نتمنى لك اختباراً موفقاً","ok");done&&done()};
+      m.querySelector('[data-a="ok"]').onclick=ok;
+      inp.onkeydown=e=>{if(e.key==="Enter")ok()};inp.oninput=()=>w.classList.remove("bad");
+      setTimeout(()=>inp.focus(),280);
+    }});
+}
+const hash=s=>{let x=0;for(const c of s)x=(x*31+c.charCodeAt(0))|0;return (x>>>0).toString(36)};
+/* ---------- قراءة الأسئلة ---------- */
+function splitExp(line){
+  const m = line.match(/[\(（]([^()（）]*)[\)）]\s*$/);
+  return m ? {text:line.slice(0,m.index).trim(), exp:m[1].trim()} : {text:line, exp:null};
+}
+/* علامة السؤال الذي جاء في اختبار سابق: ⭐ في بداية السؤال، ويمكن بعدها سنة اختيارية مثل ⭐2024 */
+const PAST_RE=/^\s*[⭐★☆]\uFE0F?\s*(\d{4})?\s*[:：-]?\s*/;
+function pastOf(line){const m=line.match(PAST_RE);return m?{text:line.slice(m[0].length).trim(),past:true,year:m[1]||""}:{text:line,past:false,year:""}}
+function parseMCQ(text){
+  return (text||"").trim().split(/\n\s*\n/).map(block=>{
+    const L = block.split("\n").map(s=>s.trim()).filter(Boolean);
+    if(L.length<3) return null;
+    let correct=-1, exp=null;
+    const opts = L.slice(1).map((l,i)=>{
+      if(l.includes("*")){
+        const s = splitExp(l); l = s.text; exp = s.exp;
+        if(/^\*|\*$/.test(l)){ correct=i; l=l.replace(/^\*\s*|\s*\*$/g,""); }
+      }
+      return l;
+    });
+    const p=pastOf(L[0]);
+    return correct<0 ? null : {type:"mcq", q:p.text, opts, correct, exp, past:p.past, year:p.year};
+  }).filter(Boolean);
+}
+function parseTF(text){
+  return (text||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m = l.match(/^(.*?)\s*(✔|✓|✅|✘|✗|✖|❌|\|\s*صح|\|\s*خطأ|\|\s*خطا)\s*(?:[\(（]([^()（）]*)[\)）])?\s*$/);
+    if(!m) return null;
+    const p=pastOf(m[1]);
+    return {type:"tf", q:p.text, answer:/✔|✓|✅|صح/.test(m[2]), exp:m[3]?m[3].trim():null, past:p.past, year:p.year};
+  }).filter(Boolean);
+}
+const IC={};
+const codeBar=x=>`<div style="margin-top:10px"><button class="codechip" data-code="${esc(x.code)}" aria-label="نسخ الشيفرة">${icon("search",14)}الشيفرة: ${esc(x.code)}</button></div>`;
+const nz=t=>String(t||"").toUpperCase().replace(/[^A-Z0-9\u0600-\u06FF]/g,"");
+function info(sid){
+  if(IC[sid]) return IC[sid];
+  const Q=SUBJECTS[sid]||{}, add=a=>a.map(q=>({...q,sid,id:sid+":"+hash(q.q)}));
+  const qm=typeof Q.mcq==="string"?Q.mcq:"", qt=typeof Q.tf==="string"?Q.tf:"";
+  const mcq=add(parseMCQ(qm)), tf=add(parseTF(qt));
+  const rawM=qm.trim()?qm.trim().split(/\n\s*\n/).length:0, rawT=qt.split("\n").filter(l=>l.trim()).length;
+  return IC[sid]={mcq,tf,past:[...mcq,...tf].filter(q=>q.past),all:[...mcq,...tf],total:mcq.length+tf.length,bad:rawM-mcq.length+rawT-tf.length,dup:mcq.length+tf.length-new Set([...mcq,...tf].map(q=>q.id)).size};
+}
+const weakQ=q=>{const p=PROG[q.id];return !!p&&(!p.l||p.c/p.a<.6)};
+function sstat(sid){const qs=info(sid).all;let seen=0,a=0,c=0,weak=0;qs.forEach(q=>{const p=PROG[q.id];if(p){seen++;a+=p.a;c+=p.c;if(weakQ(q))weak++}});return{seen,a,c,weak,total:qs.length,acc:a?Math.round(c/a*100):0}}
+const SUBJECTS={},ISSUES=[];
+const warn=m=>{ISSUES.push(m);console.warn("[المحتوى] "+m)};
+const dupe=(set,name,msg)=>{if(set.has(name))warn(msg+" («"+name+"»)");set.add(name)};
+const specNames=new Set(),codes=new Set(),HEX=/^#[0-9a-f]{3,8}$/i;
+SPECS.forEach((S,a)=>{
+  if(!S||typeof S!=="object"){warn("تخصص رقم "+(a+1)+" غير صالح");return}
+  if(!S.name)warn("تخصص رقم "+(a+1)+" بلا اسم");
+  dupe(specNames,S.name,"تخصص مكرر");
+  const lvNames=new Set();
+  (S.levels||(S.levels=[])).forEach((L,b)=>{
+    dupe(lvNames,L.name,S.name+": مستوى مكرر");
+    const tmNames=new Set();
+    (L.terms||(L.terms=[])).forEach((T,c)=>{
+      dupe(tmNames,T.name,S.name+" › "+L.name+": ترم مكرر");
+      const seen=new Set(),where=[S.name,L.name,T.name].join(" › ");
+      (T.subjects||(T.subjects=[])).forEach((x,k)=>{
+        if(x.missing)warn(where+": مادة غير معرّفة في LIB («"+x.key+"»)");
+        dupe(seen,x.name,where+": مادة مكررة في نفس الترم");
+        if(x.icon&&!ICONS[x.icon])warn(where+" › "+x.name+": أيقونة غير موجودة («"+x.icon+"»)");
+        if(!ICONS[x.icon])x.icon="book";
+        if(x.color&&!HEX.test(x.color))warn(where+" › "+x.name+": لون غير صالح («"+x.color+"»)");
+        if(!HEX.test(x.color||""))x.color=COLORS[k%COLORS.length];
+        x.id="s"+hash([S.name,L.name,T.name,x.name].join("|"));
+        /* الشيفرة: تلقائية (رمز التخصص-المستوى+الترم+رقم المادة) أو يدوية بإضافة code:"..." */
+        x.code=String(x.code||((S.tag||"SP"+(a+1))+"-"+(b+1)+(c+1)+String(k+1).padStart(2,"0"))).toUpperCase();
+        dupe(codes,x.code,where+": شيفرة مكررة");
+        if(SUBJECTS[x.id])warn(where+": تعارض في معرّف المادة «"+x.name+"»");
+        Object.assign(x,{spec:S.name,level:L.name,term:T.name,path:where+" › "+x.name,si:a,li:b,ti:c});
+        SUBJECTS[x.id]=x;
+      });
+    });
+  });
+});
+Object.values(SUBJECTS).forEach(x=>{const I=info(x.id);
+  if(I.bad)warn(x.path+": "+I.bad+" سؤال غير مقروء (راجع الصيغة)");
+  if(I.dup)warn(x.path+": "+I.dup+" سؤال مكرر");});
+const PL=Object.values(SUBJECTS).map(x=>({id:x.id,path:x.path}));
+const slab=id=>SUBJECTS[id].name+" – "+SUBJECTS[id].term;
+const ALLSUBJ=[...new Set(PL.map(p=>p.id))];
+const cTxt=q=>q.type==="mcq"?q.opts[q.correct]:(q.answer?"صح":"خطأ");
+const aTxt=(q,v)=>q.type==="mcq"?q.opts[v]:(v?"صح":"خطأ");
+const stat=(n,l)=>`<div class="stat"><b>${n}</b><small>${l}</small></div>`;
+const accColor=a=>a>=75?"var(--ok)":a>=60?"var(--accent)":"var(--bad)";
+
+/* ---------- الحالة والتنقل ---------- */
+const state={screen:"spec",sel:{spec:null,level:null,term:null},sid:null,type:"all",quiz:null};
+const PREV={level:"spec",term:"level",subject:"term",setup:"subject",review:"progress"};
+function go(screen,patch={}){Object.assign(state,{screen},patch);if(screen!=="settings")state.live=false;render();window.scrollTo({top:0,behavior:"smooth"})}
+const endQuiz=(then)=>ask({title:"إنهاء الاختبار؟",msg:"تقدمك في الأسئلة التي أجبت عنها محفوظ.",yes:"إنهاء",onYes:()=>{leaveQuiz();then()}});
+function nav(s){
+  if(state.screen==="quiz"){
+    if(s==="settings"){leaveQuiz();state.live=true;return go("settings")}   /* الإعدادات لا تُنهي الاختبار */
+    return endQuiz(()=>go(s));
+  }
+  if(state.live&&state.screen==="settings"&&s!=="settings")
+    return ask({title:"إنهاء الاختبار؟",msg:"لديك اختبار لم تُكمله. تقدمك في الأسئلة التي أجبت عنها محفوظ.",yes:"إنهاء",onYes:()=>go(s)});
+  go(s)}
+backBtn.innerHTML=icon("back",20);
+backBtn.onclick=()=>{const s=state.screen;
+  if(s==="quiz")endQuiz(()=>go(state.quiz.back));
+  else if(s==="settings"&&state.live)go("quiz");   /* الرجوع من الإعدادات يعيدك للسؤال نفسه */
+  else go(s==="result"?state.quiz.back:PREV[s]||"spec")};
+$("#brandBtn").onclick=()=>nav("spec");
+
+const drawer=$("#drawer"),dbg=$("#dbg");
+const NAV=[["spec","home","الرئيسية"],["random","shuffle","اختبار عشوائي"],["past","star","أسئلة اختبارات سابقة"],["progress","steps","تقدمي وتحليل أدائي"],["content","layers","فهرس المحتوى"],["add","plus","إضافة أسئلة"],["sug","bulb","اقتراحات"],["settings","cog","الإعدادات"]];
+const drawerOpen=o=>{drawer.classList.toggle("on",o);dbg.classList.toggle("on",o)};
+$("#menuBtn").innerHTML=icon("menu",22);$("#menuBtn").onclick=()=>drawerOpen(true);dbg.onclick=()=>drawerOpen(false);
+function drawNav(){
+  const home=["level","term","subject","setup"].includes(state.screen)?"spec":state.screen;
+  drawer.innerHTML=`<div class="dh"><b>القائمة</b><button class="icon-btn" id="dx" aria-label="إغلاق">${icon("x",20)}</button></div>`+
+    (USER?`<button class="dacct" id="dac" aria-label="حسابي"><span class="av">${esc([...USER][0])}</span><span class="bcol"><b>${esc(fullName())}</b><small>الإعدادات وتعديل الاسم</small></span></button>`:"")+
+    NAV.map(n=>`<button class="nav ${home===n[0]?"cur":""}" data-s="${n[0]}">${icon(n[1],22)}${n[2]}${n[0]==="content"&&ISSUES.length?'<span class="warn">●</span>':""}</button>`).join("");
+  $("#dx").onclick=()=>drawerOpen(false);
+  if($("#dac"))$("#dac").onclick=()=>{drawerOpen(false);nav("settings")};
+  drawer.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{drawerOpen(false);nav(b.dataset.s)});
+}
+const emptyBox = (ic,title,text) =>
+  `<div class="empty-box"><div class="eic">${icon(ic,34)}</div><h3>${title}</h3><p>${text}</p></div>`;
+
+const cur = () => {
+  const {spec,level,term}=state.sel, S=SPECS[spec], L=S&&S.levels[level], T=L&&L.terms[term];
+  return {S,L,T};
+};
+const crumbs = (...a) => `<div class="crumbs">${a.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>`;
+const stepsBar = n => `<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=n?"on":""}"></i>`).join("")}<span>الخطوة ${n} من 4</span></div>`;
+function render(){
+  try{backBtn.hidden=state.screen==="spec";drawerOpen(false);drawNav();SCREENS[state.screen]()}
+  catch(err){
+    console.error(err);toast("تعذّر عرض هذه الصفحة، تمت إعادتك إلى الرئيسية.","err");
+    state.screen="spec";backBtn.hidden=true;try{pageSpec()}catch(e2){console.error(e2)}
+  }
+}
+/* ---------- صفحة 1: التخصص ---------- */
+function pageSpec(){
+  let h = `<section class="screen">${stepsBar(1)}<div class="hero"><h1>اختر التخصص</h1><p>أهلاً بك! ابدأ باختيار تخصصك الدراسي.</p></div><div class="inwrap" id="srW">${icon("search",20)}<input type="text" id="sr" dir="auto" placeholder="ابحث بشيفرة المادة أو اسمها (مثال: MEC-1101)" autocomplete="off" autocapitalize="characters" enterkeyhint="search"></div><div class="sres" id="srR"></div>`;
+  if(!SPECS.length) h += emptyBox("inbox","لا توجد تخصصات بعد","لم تتم إضافة أي تخصص حتى الآن. تواصل مع المطور لإضافة المحتوى.");
+  else h += `<div class="grid" id="spG">`+SPECS.map((s,i)=>`<button class="tile" style="--tc:${s.color||COLORS[i%COLORS.length]}" data-i="${i}"><span class="ico">${icon(s.icon||"cog",28)}</span><span class="tx"><b>${esc(s.name)}</b><small>${s.levels.length} مستوى</small></span><span class="go">${icon("chev",20)}</span></button>`).join("")+`</div>`;
+  view.innerHTML = h+`</section>`;
+  view.querySelectorAll("#spG .tile").forEach(b=>b.onclick=()=>go("level",{sel:{spec:+b.dataset.i,level:null,term:null}}));
+  const sr=$("#sr"),R=$("#srR"),G=$("#spG");
+  const found=q=>{const k=nz(q);if(!k)return[];
+    const ex=ALLSUBJ.filter(id=>nz(SUBJECTS[id].code)===k);if(ex.length)return ex;
+    return ALLSUBJ.filter(id=>{const x=SUBJECTS[id];return nz(x.code).includes(k)||nz(x.name).includes(k)||nz(x.spec).includes(k)}).slice(0,12)};
+  const draw=()=>{const q=sr.value.trim(),ids=found(q);if(G)G.style.display=q?"none":"";
+    R.innerHTML=!q?"":ids.length?ids.map(id=>{const x=SUBJECTS[id],n=info(id).total;
+      return `<button class="tile" style="--tc:${x.color}" data-id="${id}"><span class="ico">${icon(x.icon,26)}</span><span class="tx"><b>${esc(x.name)}</b><small>${esc(x.spec)} › ${esc(x.level)} › ${esc(x.term)}</small><span class="codechip">${esc(x.code)}</span></span><span class="go">${icon("chev",20)}</span></button>`}).join(""):emptyBox("search","لا توجد نتائج","تأكد من كتابة الشيفرة بشكل صحيح، أو جرّب اسم المادة.");
+    R.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>openSubject(b.dataset.id))};
+  sr.oninput=draw;
+  sr.onkeydown=e=>{if(e.key==="Enter"){const ids=found(sr.value);if(ids.length===1)openSubject(ids[0])}};
+}
+function openSubject(id){const x=SUBJECTS[id];if(x)go("setup",{sid:id,type:"all",sel:{spec:x.si,level:x.li,term:x.ti}})}
+
+/* ---------- صفحة 2: المستوى ---------- */
+function pageLevel(){
+  const {S}=cur();
+  let h = `<section class="screen">${stepsBar(2)}<div class="hero"><h1>اختر المستوى</h1>${crumbs(S.name)}</div>`;
+  if(!S.levels.length) h += emptyBox("layers","لا توجد مستويات لهذا التخصص","لم تتم إضافة مستويات لهذا التخصص حتى الآن. سيتم إضافتها قريباً.");
+  else h += `<div class="grid">`+S.levels.map((l,i)=>`<button class="tile" style="--tc:${S.color||COLORS[0]}" data-i="${i}"><span class="ico">${icon("steps",28)}</span><span class="tx"><b>${esc(l.name)}</b><small>${l.terms.length} ترم</small></span><span class="go">${icon("chev",20)}</span></button>`).join("")+`</div>`;
+  view.innerHTML = h+`</section>`;
+  view.querySelectorAll(".tile").forEach(b=>b.onclick=()=>go("term",{sel:{...state.sel,level:+b.dataset.i,term:null}}));
+}
+
+/* ---------- صفحة 3: الترم ---------- */
+function pageTerm(){
+  const {S,L}=cur();
+  let h = `<section class="screen">${stepsBar(3)}<div class="hero"><h1>اختر الترم</h1>${crumbs(S.name,L.name)}</div>`;
+  if(!L.terms.length) h += emptyBox("calendar","لا توجد أترام لهذا المستوى","لم تتم إضافة بيانات لهذا المستوى حتى الآن. سيتم إضافتها قريباً.");
+  else h += `<div class="grid two">`+L.terms.map((t,i)=>`<button class="tile" style="--tc:${S.color||COLORS[0]}" data-i="${i}"><span class="ico">${icon("calendar",28)}</span><span class="tx"><b>${esc(t.name)}</b><small>${t.subjects.length} مادة</small></span></button>`).join("")+`</div>`;
+  view.innerHTML = h+`</section>`;
+  view.querySelectorAll(".tile").forEach(b=>b.onclick=()=>go("subject",{sel:{...state.sel,term:+b.dataset.i}}));
+}
+
+/* ---------- صفحة 4: المادة ---------- */
+function pageSubject(){
+  const {S,L,T}=cur();
+  let h=`<section class="screen">${stepsBar(4)}<div class="hero"><h1>اختر المادة</h1>${crumbs(S.name,L.name,T.name)}</div>`;
+  if(!T.subjects.length) h+=emptyBox("book","لا توجد مواد في هذا الترم","لم تتم إضافة مواد لهذا الترم حتى الآن. سيتم إضافتها قريباً.");
+  else h+=`<div class="grid">`+T.subjects.map(x=>{const n=info(x.id).total,st=sstat(x.id);
+    return `<button class="tile ${n?"":"empty"}" style="--tc:${x.color}" data-id="${x.id}"><span class="ico">${icon(x.icon,28)}</span><span class="tx"><b>${esc(x.name)}</b><small>${n?n+" سؤال"+(st.seen?" · اختبرت "+st.seen:""):"لا توجد أسئلة بعد"}</small><span class="codechip">${esc(x.code)}</span></span><span class="go">${icon("chev",20)}</span></button>`}).join("")+`</div>`;
+  view.innerHTML=h+`</section>`;
+  view.querySelectorAll(".tile").forEach(b=>b.onclick=()=>go("setup",{sid:b.dataset.id,type:"all"}));
+}
+
+/* ---------- خيارات الاختبار المشتركة ---------- */
+const tg=(id,t,on)=>`<div class="row"><span>${t}</span><button class="sw ${on?"on":""}" id="${id}" role="switch" aria-checked="${!!on}"></button></div>`;
+const flip=b=>{b.classList.toggle("on");b.setAttribute("aria-checked",b.classList.contains("on"))};
+function optsHTML(){return `<div class="panel"><div class="field" style="margin:0 0 6px"><label>عدد الأسئلة</label><div class="chips" id="cnts">${[5,10,20,0].map(n=>`<button class="chip ${U.count===n?"on":""}" data-n="${n}">${n||"الكل"}</button>`).join("")}</div><input type="number" id="cnt" min="1" placeholder="أو اكتب عدداً آخر" value="${U.count&&![5,10,20].includes(U.count)?U.count:""}"></div>${tg("oShuf","ترتيب عشوائي للأسئلة",U.shufQ)}${tg("oSkip","عدم تكرار الأسئلة التي اختبرتها سابقاً",U.skipSeen)}</div>`}
+function bindOpts(){
+  const cs=[...view.querySelectorAll("#cnts .chip")];
+  view.querySelectorAll(".sw").forEach(b=>b.onclick=()=>flip(b));
+  cs.forEach(c=>c.onclick=()=>{cs.forEach(x=>x.classList.toggle("on",x===c));$("#cnt").value=""});
+  $("#cnt").oninput=()=>cs.forEach(x=>x.classList.remove("on"));
+}
+function readOpts(){
+  const on=id=>$("#"+id).classList.contains("on"),ch=$("#cnts .chip.on"),v=+$("#cnt").value;
+  const o={count:v>0?v:ch?+ch.dataset.n:0,shuf:on("oShuf"),skip:on("oSkip")};
+  Object.assign(U,{count:o.count,shufQ:o.shuf,skipSeen:o.skip});saveU();return o;
+}
+function shuffleMCQ(q){const ord=shuffle(q.opts.map((_,i)=>i));return{...q,opts:ord.map(i=>q.opts[i]),correct:ord.indexOf(q.correct)}}
+function makeQuiz(pool,o,title){
+  let qs=pool;
+  if(o.skip){qs=qs.filter(q=>!PROG[q.id]);if(!qs.length){toast("اختبرت كل الأسئلة المتاحة سابقاً. أوقف خيار عدم التكرار أو صفّر تقدم المادة.","warn");return}}
+  if(o.shuf)qs=shuffle(qs);
+  if(o.count)qs=qs.slice(0,o.count);
+  qs=qs.map(q=>q.type==="mcq"&&U.shufO?shuffleMCQ(q):q);
+  go("quiz",{quiz:{qs,i:0,score:0,res:[],ans:[],rec:[],instant:U.fb!==false,title,pool,o,t0:Date.now(),back:state.screen}});
+}
+
+/* ---------- إعداد اختبار مادة ---------- */
+function viewSetup(){
+  const {S,L,T}=cur(),sid=state.sid,s=SUBJECTS[sid],I=info(sid),st=sstat(sid);
+  if(!I.total){
+    view.innerHTML=`<section class="screen"><div class="hero"><h1>${esc(s.name)}</h1>${crumbs(S.name,L.name,T.name)}${codeBar(s)}</div>${emptyBox("inbox","لا توجد أسئلة بعد","لم تتم إضافة أسئلة لهذه المادة حتى الآن. يمكنك إرسال أسئلتك وسنضيفها لك.")}<div class="actions"><button class="btn" id="addQ">${icon("plus",20)}إضافة أسئلة</button></div></section>`;
+    $("#addQ").onclick=()=>askHaveQuestions(s);
+    return}
+  const ty=[["all","layers","الكل",I.total],["mcq","list","اختيار من متعدد",I.mcq.length],["tf","toggle","صح / خطأ",I.tf.length],["past","star","أسئلة سابقة",I.past.length]].filter(x=>x[0]==="all"?I.mcq.length&&I.tf.length:x[3]);
+  if(!ty.some(x=>x[0]===state.type))state.type=ty[0][0];
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>${esc(s.name)}</h1>${crumbs(S.name,L.name,T.name)}${codeBar(s)}</div>
+    <div class="stats">${stat(st.seen+"/"+I.total,"اختبرتها")}${stat(st.a?st.acc+"%":"—","دقتك")}${stat(st.weak,"ضعيفة")}</div>
+    ${ty.length>1?`<div class="panel"><div class="field" style="margin:0"><label>نوع الأسئلة</label><div class="chips" id="tys">${ty.map(x=>`<button class="chip ${state.type===x[0]?"on":""}" data-t="${x[0]}">${x[2]} (${x[3]})</button>`).join("")}</div></div></div>`:""}
+    ${optsHTML()}
+    <div class="actions"><button class="btn" id="go">${icon("next",20)}ابدأ الاختبار</button></div>
+    ${st.weak?`<div class="actions"><button class="btn ghost" id="wk">${icon("refresh",20)}اختبرني في أخطائي (${st.weak})</button><button class="btn ghost" id="rv">${icon("list",20)}مراجعة أخطائي</button></div>`:""}</section>`;
+  bindOpts();
+  view.querySelectorAll("#tys .chip").forEach(c=>c.onclick=()=>{state.type=c.dataset.t;view.querySelectorAll("#tys .chip").forEach(x=>x.classList.toggle("on",x===c))});
+  $("#go").onclick=()=>makeQuiz(state.type==="mcq"?I.mcq:state.type==="tf"?I.tf:state.type==="past"?I.past:I.all,readOpts(),slab(sid));
+  if(st.weak){$("#wk").onclick=()=>makeQuiz(I.all.filter(weakQ),{...readOpts(),skip:false,noHist:true},"أخطائي – "+slab(sid));$("#rv").onclick=()=>go("review",{sid})}
+}
+
+/* ---------- الاختبار ---------- */
+const cIdx=q=>q.type==="mcq"?q.correct:(q.answer?0:1);
+const isRight=(q,v)=>q.type==="mcq"?v===q.correct:v===q.answer;
+function record(i){   /* تسجيل الإجابة في التقدم (آمن للتكرار عند تغيير الإجابة) */
+  const Q=state.quiz,q=Q.qs[i],a=Q.ans[i];if(!a||a.v==null)return;
+  const right=isRight(q,a.v),old=Q.rec[i],p=PROG[q.id]||{a:0,c:0};
+  PROG[q.id]={s:q.sid,a:p.a-(old==null?0:1)+1,c:p.c-(old?1:0)+(right?1:0),l:right,t:Date.now()};
+  Q.rec[i]=right;store.set("prog",PROG);
+}
+function leaveQuiz(){const Q=state.quiz,A=Q.ans[Q.i];if(A&&A.v!=null&&(!Q.instant||A.conf))record(Q.i)}
+function finish(){
+  const Q=state.quiz;
+  Q.res=Q.qs.map((q,k)=>({q,v:Q.ans[k].v,right:isRight(q,Q.ans[k].v)}));
+  Q.score=Q.res.filter(r=>r.right).length;Q.dur=Math.max(1,Math.round((Date.now()-Q.t0)/60000));
+  if(!(Q.o&&Q.o.noHist)){HIST.push({t:Date.now(),title:Q.title,total:Q.qs.length,score:Q.score,ids:Q.qs.map(q=>q.id)});HIST=HIST.slice(-60);store.set("hist",HIST)}go("result");
+}
+function viewQuiz(re){
+  const Q=state.quiz,i=Q.i,q=Q.qs[i],T=Q.qs.length,last=i+1===T;
+  const A=Q.ans[i]||(Q.ans[i]={v:null,conf:false,shown:false,exp:false});
+  const inst=Q.instant,locked=inst&&A.conf,has=A.v!=null,right=has&&isRight(q,A.v);
+  const si=!has?-1:q.type==="mcq"?A.v:(A.v?0:1);
+  const cls=k=>locked?(k===si?(right?"ok":"bad"):(!right&&A.shown&&k===cIdx(q)?"ok":"")):(k===si?"sel":"");
+  const dis=locked?"disabled":"";
+  const body=q.type==="mcq"
+    ?`<div class="options">${q.opts.map((o,k)=>`<button class="opt ${cls(k)}" ${dis}><span class="k">${SETTINGS.labels[k]||k+1}</span><span>${esc(o)}</span></button>`).join("")}</div>`
+    :`<div class="options tf"><button class="opt ${cls(0)}" ${dis}><span class="k">${icon("check",26,3)}</span>صح</button><button class="opt ${cls(1)}" ${dis}><span class="k">${icon("x",26,3)}</span>خطأ</button></div>`;
+  const fb=locked?`<div class="feedback show ${right?"ok":"bad"}">${icon(right?"check":"x",18,3)}<span class="msg">${right?"ممتاز":"خطأ"}</span>${!right&&!A.shown?`<button class="exp-btn" id="showA">${icon("check",16,3)}الإجابة الصحيحة</button>`:""}${q.exp?`<button class="exp-btn" id="showE">${icon("bulb",16)}توضيح السؤال</button>`:""}</div>${q.exp&&A.exp?`<div class="exp show"><b>${icon("bulb",18)}توضيح</b>${esc(q.exp)}</div>`:""}`:"";
+  const main=inst&&!A.conf?(has?`<button class="btn" id="conf">${icon("check",20,3)}تأكيد</button>`:""):((inst?A.conf:has)?`<button class="btn" id="next">${last?"إنهاء وعرض النتيجة":"التالي"}${icon("next",20)}</button>`:"");
+  const prev=i>0?`<button class="btn ghost" id="prev" style="flex:.55">${icon("back",20)}السابق</button>`:"";
+  const answered=Q.ans.filter(a=>a&&a.v!=null&&(!inst||a.conf)).length;
+  const tgl=`${icon(inst?"eye":"eyeoff",16)}${inst?"تصحيح فوري":"تصحيح بالنهاية"}`;
+  view.innerHTML=`<section class="screen ${re?"noanim":""}"><div class="progress"><div class="bar"><i style="width:${answered/T*100}%"></i></div><span class="count">${i+1} / ${T}</span><button class="mini" id="fbT" aria-pressed="${!!inst}" aria-label="تبديل إظهار الصح والخطأ">${tgl}</button></div>
+    <div class="qcard"><div class="qhead"><div class="qtags"><span class="qtag">${icon(q.type==="mcq"?"list":"toggle",16)}${q.type==="mcq"?"اختيار من متعدد":"صح أو خطأ"} · ${esc(slab(q.sid))}</span>${q.past?`<span class="qtag pastTag">${icon("star",14)}${q.year?"جاء في اختبار "+q.year:"جاء في اختبار سابق"}</span>`:""}</div><button class="rpt" id="rpt" aria-label="الإبلاغ عن خطأ في السؤال" title="الإبلاغ عن خطأ في السؤال">${icon("flag",15)}</button></div>
+    <div class="qtext">${esc(q.q)}</div>${body}${fb}</div>
+    <div class="actions">${prev}${main}</div></section>`;
+  $("#rpt").onclick=()=>reportQ(q);
+  $("#fbT").onclick=()=>{Q.instant=!Q.instant;U.fb=Q.instant;saveU();viewQuiz(true)};
+  view.querySelectorAll(".opt").forEach((b,k)=>b.onclick=()=>{if(locked)return;A.v=q.type==="mcq"?k:k===0;A.conf=false;viewQuiz(true)});
+  if($("#conf"))$("#conf").onclick=()=>{A.conf=true;record(i);viewQuiz(true)};
+  if($("#showA"))$("#showA").onclick=()=>{A.shown=true;viewQuiz(true)};
+  if($("#showE"))$("#showE").onclick=()=>{A.exp=!A.exp;viewQuiz(true)};
+  if($("#next"))$("#next").onclick=()=>{leaveQuiz();if(last)finish();else{Q.i++;viewQuiz()}};
+  if($("#prev"))$("#prev").onclick=()=>{leaveQuiz();Q.i--;viewQuiz()};
+}
+
+/* ---------- النتيجة والتحليل ---------- */
+function viewResult(){
+  const Q=state.quiz,T=Q.qs.length,pct=Math.round(Q.score/T*100),M=SETTINGS.messages,wr=T-Q.score;
+  const msg=pct>=90?pick(M.great):pct>=70?pick(M.good):pct>=SETTINGS.passPercent?pick(M.ok):pick(M.low);
+  const by={};Q.res.forEach(r=>{const b=by[r.q.sid]||(by[r.q.sid]={t:0,c:0});b.t++;b.c+=r.right?1:0});
+  const ids=Object.keys(by).sort((a,b)=>by[a].c/by[a].t-by[b].c/by[b].t);
+  view.innerHTML=`<section class="screen result">
+    <div class="ring"><svg viewBox="0 0 180 180" width="190" height="190"><defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" style="stop-color:var(--primary)"/><stop offset="1" style="stop-color:#E8B53A"/></linearGradient></defs><circle class="bg" cx="90" cy="90" r="80"/><circle class="fg" id="fg" cx="90" cy="90" r="80"/></svg><div class="num">${pct}%</div></div>
+    <h2>${msg}</h2><p>أجبت على ${Q.score} من ${T} بشكل صحيح · استغرق ${Q.dur} دقيقة</p>
+    ${ids.length>1?`<div class="panel" style="text-align:right;margin-top:18px"><h3>أداؤك حسب المادة</h3>${ids.map(id=>{const b=by[id],a=Math.round(b.c/b.t*100);return `<div class="row" style="display:block"><b>${esc(slab(id))}</b>${a<60?`<span class="tag bad">تحتاج مراجعة</span>`:""}<div class="pbar"><i style="width:${a}%;--c:${accColor(a)}"></i></div><small style="color:var(--muted)">${b.c} من ${b.t} · ${a}%</small></div>`}).join("")}</div>`:""}
+    <div class="review"><div class="row"><h3>مراجعة الإجابات</h3><div class="chips"><button class="chip on" data-f="all">الكل</button><button class="chip" data-f="bad">الأخطاء (${wr})</button></div></div><div id="rl"></div></div>
+    <div class="actions"><button class="btn" id="again">${icon("refresh",20)}إعادة الاختبار</button>${wr?`<button class="btn ghost" id="wrong">${icon("x",20)}اختبرني في أخطائي</button>`:""}<button class="btn ghost" id="home">${icon("home",20)}الرئيسية</button></div></section>`;
+  const list=f=>{$("#rl").innerHTML=Q.res.filter(r=>f==="all"||!r.right).map(r=>`<div class="rev ${r.right?"ok":""}"><button class="rpt" data-ri="${Q.res.indexOf(r)}" aria-label="الإبلاغ عن خطأ في السؤال" title="الإبلاغ عن خطأ في السؤال">${icon("flag",15)}</button><b>${esc(r.q.q)}</b><div class="y">إجابتك: ${esc(aTxt(r.q,r.v))}<span class="tag ${r.right?"ok":"bad"}">${r.right?"صحيحة":"خاطئة"}</span></div>${r.right?"":`<div class="a">${icon("check",16,3)}الصحيح: ${esc(cTxt(r.q))}</div>`}${r.q.exp?`<div class="e">${esc(r.q.exp)}</div>`:""}</div>`).join("")||`<p style="text-align:center;color:var(--muted)">لا توجد أخطاء، أحسنت!</p>`;$("#rl").querySelectorAll("[data-ri]").forEach(b=>b.onclick=()=>reportQ(Q.res[+b.dataset.ri].q))};
+  list("all");
+  view.querySelectorAll("[data-f]").forEach(c=>c.onclick=()=>{view.querySelectorAll("[data-f]").forEach(x=>x.classList.toggle("on",x===c));list(c.dataset.f)});
+  requestAnimationFrame(()=>setTimeout(()=>{$("#fg").style.strokeDashoffset=502*(1-pct/100)},60));
+  $("#again").onclick=()=>makeQuiz(Q.pool,{...Q.o,skip:false},Q.title);
+  if(wr)$("#wrong").onclick=()=>makeQuiz(Q.res.filter(r=>!r.right).map(r=>r.q),{...Q.o,skip:false,count:0,noHist:true},"أخطائي – "+Q.title);
+  $("#home").onclick=()=>go("spec");
+  if(pct>=SETTINGS.passPercent)celebrate();
+}
+function celebrate(){
+  const cs=["#1F4E96","#E8B53A","#12A37A","#D92D45","#3C7BE0"];
+  for(let i=0;i<60;i++){
+    const d=document.createElement("i"); d.className="confetti";
+    d.style.cssText=`left:${Math.random()*100}vw;background:${pick(cs)};animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*.6}s;border-radius:${Math.random()>.5?"50%":"2px"}`;
+    document.body.appendChild(d); setTimeout(()=>d.remove(),4800);
+  }
+}
+
+/* ---------- اختبار عشوائي: تخصص ← مستوى ← ترم ← مواد (نوافذ منبثقة) ---------- */
+const RSEL=new Set();
+const chosenIds=()=>[...RSEL].filter(id=>SUBJECTS[id]);
+function viewRandom(){
+  const ids=chosenIds(),totQ=ids.reduce((n,id)=>n+info(id).total,0),groups={};
+  ids.forEach(id=>{const x=SUBJECTS[id],k=x.si+"."+x.li+"."+x.ti;(groups[k]||(groups[k]={x,list:[]})).list.push(x)});
+  let h=`<section class="screen"><div class="hero"><h1>اختبار عشوائي</h1><p>اختر التخصص ثم المستوى والترم والمواد. يمكنك اختيار مواد من تخصص واحد وترم واحد فقط.</p></div>`;
+  if(!SPECS.length)h+=emptyBox("inbox","لا توجد تخصصات بعد","لم تتم إضافة أي تخصص حتى الآن. تواصل مع المطور لإضافة المحتوى.");
+  else h+=`<div class="grid">`+SPECS.map((S,i)=>{const n=ids.filter(id=>SUBJECTS[id].si===i).length;
+    return `<button class="tile" style="--tc:${S.color||COLORS[i%COLORS.length]}" data-i="${i}"><span class="ico">${icon(S.icon||"cog",28)}</span><span class="tx"><b>${esc(S.name)}</b><small>${n?n+" مادة محددة":"اضغط للاختيار"}</small></span>${n?`<span class="badge">${n}</span>`:`<span class="go">${icon("chev",20)}</span>`}</button>`}).join("")+`</div>
+`;
+  h+=ids.length
+    ?`<div class="panel" style="margin-top:14px"><div class="row"><b>اختيارك: ${ids.length} مادة · ${totQ} سؤال</b><button class="chip" id="clr">مسح الكل</button></div>${Object.keys(groups).sort().map(k=>{const g=groups[k];
+        return `<div class="bgrp"><small>${esc(g.x.spec)} › ${esc(g.x.level)} › ${esc(g.x.term)}</small><div class="chips">${g.list.map(x=>`<button class="schip" style="--c:${x.color}" data-rm="${x.id}" aria-label="إزالة ${esc(x.name)}">${icon(x.icon,16)}${esc(x.name)}${icon("x",14,3)}</button>`).join("")}</div></div>`}).join("")}</div>`
+    :`<div class="note" style="margin-top:14px">لم تحدد أي مادة بعد. اضغط على تخصص من الأعلى لبدء الاختيار.</div>`;
+  view.innerHTML=h+`${optsHTML()}<div class="actions"><button class="btn" id="go">${icon("shuffle",20)}ابدأ الاختبار العشوائي</button></div></section>`;
+  bindOpts();
+  view.querySelectorAll(".tile[data-i]").forEach(b=>b.onclick=()=>pickLevel(+b.dataset.i));
+  view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{RSEL.delete(b.dataset.rm);viewRandom()});
+  if($("#clr"))$("#clr").onclick=()=>{RSEL.clear();viewRandom();toast("تم مسح الاختيار.","info")};
+  $("#go").onclick=()=>{
+    const sel=chosenIds();if(!sel.length)return toast("حدّد مادة واحدة على الأقل لبدء الاختبار.","err");
+    const pool=sel.flatMap(id=>info(id).all);if(!pool.length)return toast("المواد المحددة لا تحتوي أسئلة بعد.","warn");
+    makeQuiz(pool,readOpts(),"اختبار عشوائي");
+  };
+}
+/* النافذة 1: المستوى */
+function pickLevel(a){
+  const S=SPECS[a];if(!S)return;
+  if(!S.levels.length)return toast("لا توجد مستويات لهذا التخصص حتى الآن.","warn");
+  const col=S.color||COLORS[a%COLORS.length];
+  showModal({icon:S.icon||"cog",color:col,title:"اختر المستوى",step:1,crumbs:[S.name],
+    body:`<div class="mlist">`+S.levels.map((l,i)=>{const n=chosenIds().filter(id=>SUBJECTS[id].si===a&&SUBJECTS[id].li===i).length;
+      return `<button class="tile" style="--tc:${col}" data-i="${i}"><span class="ico">${icon("steps",26)}</span><span class="tx"><b>${esc(l.name)}</b><small>${l.terms.length} ترم${n?" · "+n+" مادة محددة":""}</small></span>${n?`<span class="badge">${n}</span>`:`<span class="go">${icon("chev",20)}</span>`}</button>`}).join("")+`</div>`,
+    bind:m=>m.querySelectorAll(".tile").forEach(b=>b.onclick=()=>pickTerm(a,+b.dataset.i))});
+}
+/* النافذة 2: الترم */
+function pickTerm(a,b){
+  const S=SPECS[a],L=S&&S.levels[b];if(!L)return;
+  if(!L.terms.length)return toast("لا توجد أترام لهذا المستوى حتى الآن.","warn");
+  const col=S.color||COLORS[a%COLORS.length];
+  showModal({icon:"calendar",color:col,title:"اختر الترم",step:2,crumbs:[S.name,L.name],back:()=>pickLevel(a),
+    body:`<div class="mlist">`+L.terms.map((t,i)=>{const n=chosenIds().filter(id=>{const x=SUBJECTS[id];return x.si===a&&x.li===b&&x.ti===i}).length;
+      return `<button class="tile" style="--tc:${col}" data-i="${i}"><span class="ico">${icon("calendar",26)}</span><span class="tx"><b>${esc(t.name)}</b><small>${t.subjects.length} مادة${n?" · "+n+" محددة":""}</small></span>${n?`<span class="badge">${n}</span>`:`<span class="go">${icon("chev",20)}</span>`}</button>`}).join("")+`</div>`,
+    bind:m=>m.querySelectorAll(".tile").forEach(x=>x.onclick=()=>pickSubjects(a,b,+x.dataset.i))});
+}
+/* النافذة 3: المواد (تحديد متعدد) */
+function pickSubjects(a,b,c){
+  const S=SPECS[a],L=S&&S.levels[b],T=L&&L.terms[c];if(!T)return;
+  if(!T.subjects.length)return toast("لا توجد مواد في هذا الترم حتى الآن.","warn");
+  const had=T.subjects.filter(x=>RSEL.has(x.id)).length;
+  showModal({icon:"book",color:S.color||COLORS[a%COLORS.length],title:"اختر المواد",sub:"يمكنك تحديد أكثر من مادة.",step:3,crumbs:[S.name,L.name,T.name],back:()=>pickTerm(a,b),
+    body:`<div class="mlist">`+T.subjects.map(x=>{const n=info(x.id).total,on=n&&RSEL.has(x.id);
+      return `<label class="stile ${n?"":"off"} ${on?"on":""}" style="--tc:${x.color}"><input type="checkbox" value="${x.id}" ${on?"checked":""} ${n?"":"disabled"}><span class="ico">${icon(x.icon,24)}</span><span class="tx"><b>${esc(x.name)}</b><small>${n?n+" سؤال":"لا توجد أسئلة بعد"}</small></span><span class="tick">${icon("check",16,3)}</span></label>`}).join("")+`</div>`,
+    foot:`<button class="btn ghost" data-a="all"></button><button class="btn" data-a="ok"></button>`,
+    bind:m=>{
+      const cbs=[...m.querySelectorAll('input[type="checkbox"]:not(:disabled)')],okB=m.querySelector('[data-a="ok"]'),allB=m.querySelector('[data-a="all"]');
+      const upd=()=>{const n=cbs.filter(x=>x.checked).length;
+        okB.innerHTML=icon("check",20,3)+"تم"+(n?" ("+n+")":"");
+        allB.textContent=cbs.length&&n===cbs.length?"إلغاء الكل":"تحديد الكل";allB.disabled=!cbs.length};
+      cbs.forEach(x=>x.onchange=()=>{x.closest(".stile").classList.toggle("on",x.checked);upd()});
+      allB.onclick=()=>{const v=!cbs.every(x=>x.checked);cbs.forEach(x=>{x.checked=v;x.closest(".stile").classList.toggle("on",v)});upd()};
+      okB.onclick=()=>{
+        const chosen=cbs.filter(x=>x.checked).map(x=>x.value);
+        if(!chosen.length&&!had)return toast("اختر مادة واحدة على الأقل.","warn");
+        T.subjects.forEach(x=>RSEL.delete(x.id));chosen.forEach(id=>RSEL.add(id));
+        /* مواد من ترم/تخصص مختلف عن الترم الحالي */
+        const others=chosenIds().filter(id=>{const x=SUBJECTS[id];return !(x.si===a&&x.li===b&&x.ti===c)});
+        const apply=()=>{
+          others.forEach(id=>RSEL.delete(id));
+          T.subjects.forEach(x=>RSEL.delete(x.id));chosen.forEach(id=>RSEL.add(id));
+          closeModal();if(state.screen==="random")viewRandom();
+          toast(chosen.length?"تمت إضافة "+chosen.length+" مادة إلى اختيارك.":"تمت إزالة مواد هذا الترم من اختيارك.",chosen.length?"ok":"info");
+        };
+        if(chosen.length&&others.length){
+          ask({title:"استبدال الاختيار السابق؟",msg:"الاختبار العشوائي يسمح بمواد من تخصص واحد وترم واحد فقط. سيتم حذف اختيارك السابق من الترم أو التخصص الآخر.",yes:"استبدال",onYes:apply});
+          return;
+        }
+        apply();
+      };
+      upd();
+    }});
+}
+
+/* ---------- الإبلاغ عن خطأ في سؤال (يُرسل إلى واتساب) ---------- */
+const RP_REASONS=["الإجابة الصحيحة غير صحيحة","خطأ إملائي أو لغوي","السؤال غير واضح أو ناقص","سؤال مكرر","مشكلة أخرى"];
+function reportQ(q){
+  const x=SUBJECTS[q.sid];if(!x)return;let pick=-1;
+  showModal({icon:"flag",color:"var(--bad)",title:"الإبلاغ عن خطأ",sub:"ما المشكلة في هذا السؤال؟",crumbs:[x.name,x.code],
+    body:`<div class="bgrp"><div class="chips" id="rpC">${RP_REASONS.map((r,i)=>`<button class="chip" data-i="${i}">${r}</button>`).join("")}</div></div>
+      <div class="field"><label for="rpN">ملاحظة (اختياري)</label><textarea id="rpN" maxlength="400" style="min-height:90px" placeholder="مثال: الإجابة الصحيحة هي الخيار الثالث"></textarea></div>`,
+    foot:`<button class="btn danger" data-a="go">${icon("send",20)}إرسال البلاغ</button>`,
+    bind:m=>{
+      const cs=[...m.querySelectorAll("#rpC .chip")];
+      cs.forEach(c=>c.onclick=()=>{pick=+c.dataset.i;cs.forEach(k=>k.classList.toggle("on",k===c))});
+      m.querySelector('[data-a="go"]').onclick=()=>{
+        const note=m.querySelector("#rpN").value.trim();
+        if(pick<0&&!note)return toast("اختر نوع المشكلة أو اكتب ملاحظة.","err");
+        const ans=q.type==="mcq"?q.opts.map((o,i)=>`${SETTINGS.labels[i]||i+1}) ${o}${i===q.correct?" ✅":""}`).join("\n"):"الإجابة المسجلة: "+(q.answer?"صح":"خطأ");
+        const msg=`*🚩 بلاغ عن خطأ في سؤال*\n${WL}\n👤 الاسم: ${USER?fullName():"—"}\n🎓 التخصص: ${x.spec}\n📶 المستوى: ${x.level}\n🗓 الترم: ${x.term}\n📖 المادة: ${x.name}\n🔑 الشيفرة: ${x.code}\n🆔 ${q.id}\n${WL}\n*❓ السؤال:*\n${q.q}\n\n${ans}\n${WL}\n⚠️ المشكلة: ${pick>=0?RP_REASONS[pick]:"—"}${note?"\n📝 ملاحظة: "+note:""}\n\n_أُرسل من منصة الكويزات_`;
+        closeModal();waOpen(msg);toast("تم تجهيز البلاغ في واتساب. شكراً لك!","ok");
+      };
+    }});
+}
+
+/* ---------- أسئلة اختبارات سابقة ---------- */
+const PASTSEL={sid:null};
+function pastPick(){
+  const subs=ALLSUBJ.filter(id=>info(id).past.length),total=subs.reduce((n,id)=>n+info(id).past.length,0);
+  showModal({icon:"star",color:"#E8A317",title:"اختر المادة",sub:"تظهر هنا المواد التي فيها أسئلة سابقة فقط.",
+    body:`<div class="mlist">`+addTile("#E8A317","star","كل الأسئلة السابقة",total+" سؤال في "+subs.length+" مادة","",'data-all="1"')+
+      subs.map(id=>{const x=SUBJECTS[id];return addTile(x.color,x.icon,x.name,esc(x.spec)+" › "+esc(x.term)+" · "+esc(x.code),`<span class="badge" style="--tc:${x.color}">${info(id).past.length}</span>`,`data-id="${id}"`)}).join("")+`</div>`,
+    bind:m=>{
+      m.querySelector("[data-all]").onclick=()=>{PASTSEL.sid=null;closeModal();viewPast()};
+      m.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>{PASTSEL.sid=b.dataset.id;closeModal();viewPast()});
+    }});
+}
+function viewPast(){
+  const subs=ALLSUBJ.filter(id=>info(id).past.length),total=subs.reduce((n,id)=>n+info(id).past.length,0);
+  if(PASTSEL.sid&&!subs.includes(PASTSEL.sid))PASTSEL.sid=null;
+  const x=PASTSEL.sid&&SUBJECTS[PASTSEL.sid];
+  const head=`<div class="hero"><h1>أسئلة اختبارات سابقة</h1><p>أسئلة جاءت فعلاً في اختبارات سابقة. اختبر نفسك فيها لتعرف مستوى الأسئلة المتوقعة.</p></div>`;
+  if(!total){view.innerHTML=`<section class="screen">${head}${emptyBox("star","لا توجد أسئلة سابقة بعد","لم يتم تمييز أي سؤال كسؤال سابق حتى الآن. سيتم إضافتها قريباً.")}</section>`;return}
+  const box=x
+    ?`<button class="pickbox" id="pk" style="--tc:${x.color}"><span class="ico">${icon(x.icon,24)}</span><span class="tx"><b>${esc(x.name)}</b><small>${esc(x.spec)} › ${esc(x.level)} › ${esc(x.term)}</small><span class="codechip">${esc(x.code)}</span></span><span class="go">${icon("edit",18)}</span></button>`
+    :`<button class="pickbox" id="pk" style="--tc:#E8A317"><span class="ico">${icon("star",24)}</span><span class="tx"><b>كل الأسئلة السابقة</b><small>من ${subs.length} مادة · اضغط لاختيار مادة محددة</small></span><span class="go">${icon("edit",18)}</span></button>`;
+  const n=x?info(x.id).past.length:total;
+  view.innerHTML=`<section class="screen">${head}<div class="stats">${stat(n,"سؤال سابق")}${stat(x?1:subs.length,"مادة")}${stat(HIST.length,"اختبارات")}</div>
+    <div class="panel"><div class="field" style="margin:0"><label>المادة</label>${box}</div></div>${optsHTML()}
+    <div class="actions"><button class="btn" id="go">${icon("next",20)}ابدأ الاختبار</button></div></section>`;
+  bindOpts();$("#pk").onclick=pastPick;
+  $("#go").onclick=()=>{const pool=x?info(x.id).past:subs.flatMap(id=>info(id).past);
+    makeQuiz(pool,readOpts(),x?"أسئلة سابقة – "+slab(x.id):"أسئلة سابقة");};
+}
+
+/* ---------- تقدمي وتحليل أدائي ---------- */
+function viewProgress(){
+  const ids=ALLSUBJ.filter(id=>info(id).total),S=ids.map(id=>({id,...sstat(id)}));
+  const seen=S.reduce((a,s)=>a+s.seen,0),tot=S.reduce((a,s)=>a+s.total,0),A=S.reduce((a,s)=>a+s.a,0),C=S.reduce((a,s)=>a+s.c,0),W=S.reduce((a,s)=>a+s.weak,0);
+  const weakS=S.filter(s=>s.a&&s.acc<60),rows=[...S.filter(s=>s.a).sort((a,b)=>a.acc-b.acc),...S.filter(s=>!s.a)];
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>تقدمي وتحليل أدائي</h1><p>كل ما أنجزته محفوظ على جهازك.</p></div>
+    <div class="stats">${stat(seen+"/"+tot,"أسئلة اختبرتها")}${stat(A?Math.round(C/A*100)+"%":"—","دقتك العامة")}${stat(HIST.length,"اختبارات")}</div>
+    ${weakS.length?`<div class="note">أنت ضعيف في: ${weakS.map(s=>esc(slab(s.id))).join("، ")}. ابدأ بمراجعتها.</div>`:""}
+    ${W?`<div class="actions" style="margin:0 0 14px"><button class="btn" id="wk">${icon("refresh",20)}اختبرني في كل أخطائي (${W})</button></div>`:""}
+    <div class="panel"><h3>المواد</h3>${rows.length?rows.map(s=>`<button class="row" style="display:block" data-id="${s.id}"><b>${esc(slab(s.id))}</b>${s.a&&s.acc<60?`<span class="tag bad">ضعيف</span>`:""}<div class="pbar"><i style="width:${s.a?s.acc:0}%;--c:${accColor(s.acc)}"></i></div><small style="color:var(--muted)">${s.seen}/${s.total} سؤال · ${s.a?"دقة "+s.acc+"%":"لم تبدأ بعد"}${s.weak?" · "+s.weak+" ضعيفة":""}</small></button>`).join(""):"<p style='color:var(--muted)'>لا توجد أسئلة بعد.</p>"}</div>
+    ${HIST.length?`<div class="panel"><h3>آخر الاختبارات</h3>${HIST.slice(-8).reverse().map(h=>{const a=Math.round(h.score/h.total*100);return `<div class="row"><span>${esc(h.title)}<br><small style="color:var(--muted)">${new Date(h.t).toLocaleDateString("ar",{day:"numeric",month:"short"})}</small></span><span style="display:flex;align-items:center;gap:10px"><button class="chip" data-rt="${h.t}" aria-label="إعادة هذا الاختبار">${icon("refresh",14,3)}إعادة</button><b style="color:${accColor(a)}">${h.score}/${h.total}</b></span></div>`}).join("")}</div>`:""}</section>`;
+  view.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>go("review",{sid:b.dataset.id}));
+  view.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{
+    const h=HIST.find(x=>String(x.t)===b.dataset.rt);if(!h)return;
+    if(!h.ids){  /* اختبار قديم لم تُحفظ أسئلته: نعيد اختباراً بنفس المادة وعدد الأسئلة */
+      const sid=ALLSUBJ.find(id=>slab(id)===h.title),pool=sid?info(sid).all:[];
+      if(!pool.length)return toast("هذا الاختبار قديم ولم تُحفظ أسئلته. ستعمل الإعادة للاختبارات الجديدة.","warn");
+      toast("هذا الاختبار قديم، سيتم اختبارك بأسئلة جديدة من نفس المادة.","info");
+      return makeQuiz(pool,{count:h.total,shuf:true,skip:false},h.title);
+    }
+    const map={};ALLSUBJ.forEach(id=>info(id).all.forEach(q=>map[q.id]=q));
+    const pool=h.ids.map(id=>map[id]).filter(Boolean);
+    if(!pool.length)return toast("تعذّر العثور على أسئلة هذا الاختبار.","warn");
+    if(pool.length<h.ids.length)toast("بعض أسئلة هذا الاختبار لم تعد متاحة.","info");
+    makeQuiz(pool,{count:0,shuf:false,skip:false},h.title);
+  });
+  if(W)$("#wk").onclick=()=>{state.screen="progress";makeQuiz(ids.flatMap(id=>info(id).all.filter(weakQ)),{count:0,shuf:true,skip:false,noHist:true},"كل أخطائي")};
+}
+
+/* ---------- مراجعة أخطاء مادة ---------- */
+function viewReview(){
+  const sid=state.sid,I=info(sid),W=I.all.filter(weakQ),nm=SUBJECTS[sid].name;
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>أخطائي: ${esc(nm)}</h1><p>الأسئلة التي أخطأت فيها أو ما زلت ضعيفاً فيها.</p></div>
+    ${W.length?W.map(q=>{const p=PROG[q.id];return `<div class="rev"><b>${esc(q.q)}</b><div class="a">${icon("check",16,3)}الصحيح: ${esc(cTxt(q))}</div>${q.exp?`<div class="e">${esc(q.exp)}</div>`:""}<div class="y">أخطأت ${p.a-p.c} من ${p.a} محاولة</div></div>`}).join(""):emptyBox("check","لا توجد أسئلة ضعيفة","لا توجد أخطاء مسجلة في هذه المادة. استمر!")}
+    <div class="actions">${W.length?`<button class="btn" id="wk">${icon("refresh",20)}اختبرني فيها</button>`:""}<button class="btn ghost" id="rs">${icon("x",20)}تصفير تقدم المادة</button></div></section>`;
+  if(W.length)$("#wk").onclick=()=>makeQuiz(W,{count:0,shuf:true,skip:false,noHist:true},"أخطائي – "+nm);
+  $("#rs").onclick=()=>ask({title:"تصفير تقدم المادة؟",msg:"سيتم حذف تقدمك في هذه المادة، وتعتبر كل أسئلتها جديدة.",yes:"نعم، صفّر",danger:true,onYes:()=>{I.all.forEach(q=>delete PROG[q.id]);store.set("prog",PROG);viewReview();toast("تم تصفير تقدم المادة.","ok")}});
+}
+
+/* ---------- فهرس المحتوى (للمسؤول) ---------- */
+function viewContent(){
+  const line=x=>{const I=info(x.id);return `<div class="row"><span ${x.missing?'class="warn"':""}>${esc(x.name)} <span class="codechip">${esc(x.code)}</span></span><small>${I.mcq.length} اختيار · ${I.tf.length} صح/خطأ${I.past.length?" · "+I.past.length+" سابق":""}${I.bad?` <span class="warn">· ${I.bad} غير مقروء</span>`:""}</small></div>`};
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>فهرس المحتوى</h1><p>${SPECS.length} تخصص · ${ALLSUBJ.length} مادة · ${ALLSUBJ.reduce((a,id)=>a+info(id).total,0)} سؤال</p></div>`+
+    (ISSUES.length?`<div class="note"><b class="warn">تنبيهات (${ISSUES.length}) — صحّحها لتفادي الأخطاء:</b><br>${ISSUES.map(esc).join("<br>")}</div>`:`<div class="note" style="color:var(--ok)">${icon("check",16,3)} البيانات سليمة، لا توجد أخطاء.</div>`)+
+    SPECS.map(S=>{
+      const qs=x=>info(x.id).total,tq=S.levels.reduce((n,L)=>n+L.terms.reduce((m,T)=>m+T.subjects.reduce((k,x)=>k+qs(x),0),0),0);
+      return `<details class="panel tree"><summary>${icon(S.icon||"cog",20)}<b style="flex:1">${esc(S.name)}</b><small style="color:var(--muted)">${S.levels.length} مستوى · ${tq} سؤال</small></summary>`+
+      (S.levels.map(L=>{const lq=L.terms.reduce((m,T)=>m+T.subjects.reduce((k,x)=>k+qs(x),0),0);
+        return `<details style="margin-top:4px"><summary><b style="flex:1">${esc(L.name)}</b><small style="color:var(--muted)">${L.terms.length} ترم · ${lq} سؤال</small></summary>`+
+        (L.terms.map(T=>{const tq2=T.subjects.reduce((k,x)=>k+qs(x),0);
+          return `<details style="margin-top:2px"><summary><b style="flex:1">${esc(T.name)}</b><small style="color:var(--muted)">${T.subjects.length} مادة · ${tq2} سؤال</small></summary>`+
+          (T.subjects.length?T.subjects.map(line).join(""):`<div class="row warn">لا توجد مواد</div>`)+`</details>`}).join("")||`<div class="row warn">لا توجد أترام</div>`)+`</details>`}).join("")||`<div class="row warn">لا توجد مستويات بعد</div>`)+`</details>`}).join("")+`</section>`;
+}
+
+/* ---------- إرسال طلب إضافة أسئلة عبر واتساب ---------- */
+const waOpen=m=>window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(m),"_blank");
+const WL="━━━━━━━━━━";
+function addMsg(o){
+  return `*📚 طلب إضافة أسئلة جديدة*\n${WL}\n👤 الاسم: ${o.nm||"—"}\n🎓 التخصص: ${o.spec}\n📶 المستوى: ${o.level}\n🗓 الترم: ${o.term}\n📖 المادة: ${o.subj}${o.code?"\n🔑 الشيفرة: "+o.code:""}\n📅 التاريخ: ${new Date().toLocaleDateString("ar")}\n${WL}\n*✍️ الأسئلة:*\n\n${o.tx||"(لا توجد أسئلة مرفقة — أرجو إضافة أسئلة لهذه المادة)"}\n\n${WL}\n_أُرسلت من منصة الكويزات_`;
+}
+const FMT_HINT="اختيار من متعدد: سطر السؤال ثم الاختيارات، وضع * بعد الصحيح، وسطر فارغ بين الأسئلة.\nصح/خطأ: سطر لكل سؤال وينتهي بـ ✔ أو ✘.";
+function askHaveQuestions(x){
+  const ctx=[x.spec,x.level,x.term,x.name];
+  showModal({icon:"inbox",color:x.color,title:"هل لديك أسئلة لهذه المادة؟",sub:"يمكنك كتابة أسئلتك الآن وإرسالها، أو طلب إضافة المادة فقط.",crumbs:ctx,
+    body:`<div class="mlist">
+      <button class="tile" style="--tc:#12A37A" data-a="yes"><span class="ico">${icon("edit",26)}</span><span class="tx"><b>نعم، لدي أسئلة</b><small>اكتبها ثم أرسلها</small></span><span class="go">${icon("chev",20)}</span></button>
+      <button class="tile" style="--tc:#3C7BE0" data-a="no"><span class="ico">${icon("send",26)}</span><span class="tx"><b>لا، أرسل الطلب فقط</b><small>سنضيف أسئلة هذه المادة لاحقاً</small></span><span class="go">${icon("chev",20)}</span></button></div>`,
+    bind:m=>{
+      m.querySelector('[data-a="yes"]').onclick=()=>writeQuestions(x);
+      m.querySelector('[data-a="no"]').onclick=()=>{closeModal();waOpen(addMsg({nm:USER?fullName():"",spec:x.spec,level:x.level,term:x.term,subj:x.name,code:x.code}));toast("تم تجهيز الطلب في واتساب.","ok")};
+    }});
+}
+function writeQuestions(x,keep=""){
+  showModal({icon:"edit",color:x.color,title:"اكتب أسئلتك",sub:x.name,crumbs:[x.spec,x.level,x.term],back:()=>askHaveQuestions(x),
+    body:`<div class="field" style="margin-top:0"><label for="qTx">الأسئلة</label><textarea id="qTx" style="min-height:170px" placeholder="السؤال؟&#10;الاختيار الأول&#10;الاختيار الصحيح*&#10;الاختيار الثالث&#10;&#10;جملة صح أو خطأ ✔">${esc(keep)}</textarea></div><details><summary>طريقة الكتابة</summary><div class="hint">${esc(FMT_HINT)}</div></details>`,
+    foot:`<button class="btn" data-a="go">${icon("send",20)}إرسال عبر واتساب</button>`,
+    bind:m=>{
+      const t=m.querySelector("#qTx");
+      m.querySelector('[data-a="go"]').onclick=()=>{
+        const tx=t.value.trim();if(!tx){toast("اكتب سؤالاً واحداً على الأقل، أو ارجع واختر «لا».","err");t.focus();return}
+        closeModal();waOpen(addMsg({nm:USER?fullName():"",spec:x.spec,level:x.level,term:x.term,subj:x.name,code:x.code,tx}));toast("تم تجهيز أسئلتك في واتساب.","ok");
+      };
+      setTimeout(()=>t.focus(),280);
+    }});
+}
+
+/* ---------- إضافة أسئلة / اقتراحات ---------- */
+const ADD={sid:null,other:false,tx:"",nm:null};
+function addRefresh(){if(state.screen==="add")viewContact()}
+const addTile=(col,ic,t,sm,badge,attr)=>`<button class="tile" style="--tc:${col}" ${attr}><span class="ico">${icon(ic,26)}</span><span class="tx"><b>${esc(t)}</b><small>${sm}</small></span>${badge||`<span class="go">${icon("chev",20)}</span>`}</button>`;
+function addPickSpec(){
+  showModal({icon:"layers",title:"اختر التخصص",sub:"حدّد المادة التي تريد إضافة أسئلتها.",step:1,steps:4,
+    body:`<div class="mlist">`+SPECS.map((S,i)=>addTile(S.color||COLORS[i%COLORS.length],S.icon||"cog",S.name,S.levels.length?S.levels.length+" مستوى":"قريباً",S.levels.length?"":`<span class="tag new">قريباً</span>`,`data-i="${i}"`)).join("")+
+      addTile("#62708F","plus","مادة أخرى / غير مذكورة","اكتب اسمها ضمن رسالتك","",'data-o="1"')+`</div>`,
+    bind:m=>{
+      m.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>addPickLevel(+b.dataset.i));
+      m.querySelector("[data-o]").onclick=()=>{ADD.sid=null;ADD.other=true;closeModal();addRefresh();toast("اكتب اسم المادة داخل الأسئلة.","info")};
+    }});
+}
+function addPickLevel(a){
+  const S=SPECS[a];if(!S)return;
+  if(!S.levels.length)return toast("لم تتم إضافة مستويات لهذا التخصص بعد. استخدم «مادة أخرى».","warn");
+  const col=S.color||COLORS[a%COLORS.length];
+  showModal({icon:S.icon||"cog",color:col,title:"اختر المستوى",step:2,steps:4,crumbs:[S.name],back:addPickSpec,
+    body:`<div class="mlist">`+S.levels.map((l,i)=>addTile(col,"steps",l.name,l.terms.length+" ترم","",`data-i="${i}"`)).join("")+`</div>`,
+    bind:m=>m.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>addPickTerm(a,+b.dataset.i))});
+}
+function addPickTerm(a,b){
+  const S=SPECS[a],L=S&&S.levels[b];if(!L)return;
+  if(!L.terms.length)return toast("لا توجد أترام لهذا المستوى بعد.","warn");
+  const col=S.color||COLORS[a%COLORS.length];
+  showModal({icon:"calendar",color:col,title:"اختر الترم",step:3,steps:4,crumbs:[S.name,L.name],back:()=>addPickLevel(a),
+    body:`<div class="mlist">`+L.terms.map((t,i)=>addTile(col,"calendar",t.name,t.subjects.length+" مادة","",`data-i="${i}"`)).join("")+`</div>`,
+    bind:m=>m.querySelectorAll("[data-i]").forEach(x=>x.onclick=()=>addPickSubj(a,b,+x.dataset.i))});
+}
+function addPickSubj(a,b,c){
+  const S=SPECS[a],L=S&&S.levels[b],T=L&&L.terms[c];if(!T)return;
+  if(!T.subjects.length)return toast("لا توجد مواد في هذا الترم بعد.","warn");
+  showModal({icon:"book",color:S.color||COLORS[a%COLORS.length],title:"اختر المادة",step:4,steps:4,crumbs:[S.name,L.name,T.name],back:()=>addPickTerm(a,b),
+    body:`<div class="mlist">`+T.subjects.map(x=>{const n=info(x.id).total;
+      return addTile(x.color,x.icon,x.name,n?n+" سؤال":"لا توجد أسئلة بعد",n?"":`<span class="tag new">جديدة</span>`,`data-id="${x.id}"`)}).join("")+`</div>`,
+    bind:m=>m.querySelectorAll("[data-id]").forEach(x=>x.onclick=()=>{ADD.sid=x.dataset.id;ADD.other=false;closeModal();addRefresh()})});
+}
+function viewContact(){
+  const add=state.screen==="add",x=ADD.sid&&SUBJECTS[ADD.sid];
+  const box=x
+    ?`<button class="pickbox" id="pk" style="--tc:${x.color}"><span class="ico">${icon(x.icon,24)}</span><span class="tx"><b>${esc(x.name)}</b><small>${esc(x.spec)} › ${esc(x.level)} › ${esc(x.term)}</small></span><span class="go">${icon("edit",18)}</span></button>`
+    :ADD.other
+    ?`<button class="pickbox" id="pk"><span class="ico" style="background:#62708F">${icon("plus",24)}</span><span class="tx"><b>مادة أخرى / غير مذكورة</b><small>اكتب اسم المادة والتخصص داخل رسالتك</small></span><span class="go">${icon("edit",18)}</span></button>`
+    :`<button class="pickbox empty" id="pk"><span class="ico">${icon("layers",24)}</span><span class="tx"><b>اضغط لاختيار المادة</b><small>التخصص › المستوى › الترم › المادة</small></span><span class="go">${icon("chev",20)}</span></button>`;
+  const nm0=ADD.nm==null?USER:ADD.nm;
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>${add?"إضافة أسئلة":"اقتراحات"}</h1><p>${add?"اختر المادة من القائمة المنبثقة، اكتب الأسئلة بالصيغة الموضحة ثم اضغط «إضافة» لتُفتح رسالة منظمة في واتساب.":"اكتب اقتراحك أو ملاحظتك وسنصلك عبر واتساب."}</p></div>
+    <div class="panel"><div class="field" style="margin-top:0"><label>اسمك (اختياري)</label><input type="text" id="nm" maxlength="40" value="${esc(nm0)}"></div>
+    ${add?`<div class="field"><label>المادة</label>${box}</div>`:""}
+    <div class="field"><label>${add?"الأسئلة":"اقتراحك"}</label><textarea id="tx" placeholder="${add?"السؤال؟&#10;الاختيار الأول&#10;الاختيار الصحيح*&#10;الاختيار الثالث&#10;&#10;جملة صح أو خطأ ✔":"اكتب هنا..."}">${esc(add?ADD.tx:"")}</textarea>${add?`<details><summary>طريقة الكتابة</summary><div class="hint">${esc(FMT_HINT)}</div></details>`:""}</div></div>
+    <div class="actions"><button class="btn" id="send">${icon("send",20)}${add?"إضافة":"إرسال الاقتراح"}</button></div></section>`;
+  $("#nm").oninput=e=>{ADD.nm=e.target.value};
+  if(add){$("#tx").oninput=e=>{ADD.tx=e.target.value};$("#pk").onclick=addPickSpec}
+  $("#send").onclick=()=>{
+    const tx=$("#tx").value.trim();if(!tx){toast("اكتب النص أولاً.","err");$("#tx").focus();return}
+    const nm=$("#nm").value.trim()||"—",d=new Date().toLocaleDateString("ar"),L="━━━━━━━━━━";
+    if(add){
+      if(!x&&!ADD.other){toast("اختر المادة أولاً.","err");$("#pk").focus();return}
+      waOpen(addMsg({nm,spec:x?x.spec:"—",level:x?x.level:"—",term:x?x.term:"—",subj:x?x.name:"مادة أخرى / غير مذكورة",code:x?x.code:"",tx}));
+    }else waOpen(`*💡 اقتراح جديد*\n${L}\n👤 الاسم: ${nm}\n📅 التاريخ: ${d}\n${L}\n*الاقتراح:*\n\n${tx}\n\n${L}\n_أُرسل من منصة الكويزات_`);
+  };
+}
+
+/* ---------- الإعدادات ---------- */
+function viewSettings(){
+  const th=root.dataset.theme,chips=(a,cur,at)=>a.map(x=>`<button class="chip ${cur===x[0]?"on":""}" data-${at}="${x[0]}">${x[1]}</button>`).join("");
+  view.innerHTML=`<section class="screen"><div class="hero"><h1>الإعدادات</h1><p>تُحفظ تلقائياً على جهازك.</p></div>${state.live?`<div class="actions" style="margin:0 0 14px"><button class="btn" id="resumeQ">${icon("next",20)}العودة إلى الاختبار</button></div>`:""}
+    <div class="panel"><div class="field" style="margin-top:0"><label for="sNm">اسمك</label><div class="inwrap" id="sNmW">${icon("user",20)}<b class="pfx">م/</b><input type="text" id="sNm" maxlength="30" value="${esc(USER)}" placeholder="اكتب اسمك" autocomplete="given-name"></div></div>
+    <div class="actions" style="margin-top:12px"><button class="btn" id="sNmSave">${icon("edit",20)}حفظ الاسم</button></div></div>
+    <div class="panel"><div class="field" style="margin-top:0"><label>المظهر</label><div class="chips">${chips([["light","نهاري"],["dark","ليلي"]],th,"th")}</div></div>
+    <div class="field"><label>حجم الخط</label><div class="chips">${chips([[90,"صغير"],[100,"متوسط"],[115,"كبير"]],U.fs,"fs")}</div></div></div>
+    <div class="panel">${tg("sShufQ","خلط ترتيب الأسئلة افتراضياً",U.shufQ)}${tg("sShufO","خلط ترتيب الاختيارات",U.shufO)}${tg("sSkip","عدم تكرار الأسئلة السابقة افتراضياً",U.skipSeen)}
+    <div class="field"><label>عدد الأسئلة الافتراضي (0 = الكل)</label><input type="number" id="sCnt" min="0" value="${U.count}"></div></div>
+    <div class="actions"><button class="btn ghost" id="rst">${icon("x",20)}تصفير كل التقدم</button></div></section>`;
+  if($("#resumeQ"))$("#resumeQ").onclick=()=>go("quiz");
+  const K={sShufQ:"shufQ",sShufO:"shufO",sSkip:"skipSeen"};
+  view.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{flip(b);U[K[b.id]]=b.classList.contains("on");saveU()});
+  view.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{setTheme(b.dataset.th,true);viewSettings()});
+  view.querySelectorAll("[data-fs]").forEach(b=>b.onclick=()=>{U.fs=+b.dataset.fs;saveU();applyFS();viewSettings()});
+  const saveNm=()=>{const r=cleanName($("#sNm").value),w=$("#sNmW");
+    if(r.err){toast(r.err,"err");w.classList.remove("bad");void w.offsetWidth;w.classList.add("bad");$("#sNm").focus();return}
+    if(r.v===USER){toast("الاسم لم يتغير.","info");return}
+    saveName(r.v);$("#sNm").value=r.v;toast("تم حفظ الاسم: م/ "+r.v,"ok")};
+  $("#sNmSave").onclick=saveNm;$("#sNm").onkeydown=e=>{if(e.key==="Enter")saveNm()};$("#sNm").oninput=()=>$("#sNmW").classList.remove("bad");
+  $("#sCnt").onchange=e=>{U.count=Math.max(0,+e.target.value||0);saveU()};
+  $("#rst").onclick=()=>ask({title:"تصفير كل التقدم؟",msg:"سيتم حذف تقدمك وسجل اختباراتك نهائياً. اسمك وإعداداتك ستبقى كما هي.",yes:"نعم، صفّر",danger:true,onYes:()=>{PROG={};HIST=[];store.set("prog",PROG);store.set("hist",HIST);toast("تم تصفير التقدم. اسمك محفوظ.","ok")}});
+}
+
+/* ---------- الوضع الليلي + الشعار + الترحيب ---------- */
+const root=document.documentElement,themeBtn=$("#themeBtn");
+function setTheme(t,save){root.dataset.theme=t;themeBtn.innerHTML=icon(t==="dark"?"sun":"moon",20);if(save){U.theme=t;saveU()}}
+setTheme(U.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+themeBtn.onclick=()=>{setTheme(root.dataset.theme==="dark"?"light":"dark",true);if(state.screen==="settings")viewSettings()};
+const applyFS=()=>{$(".app").style.zoom=U.fs/100};applyFS();
+
+$("#splashLogo").innerHTML=logoSVG("s");
+$("#brandLogo").innerHTML=logoSVG("h");
+$("#phoneLink").innerHTML=icon("phone",16)+PHONE;
+const closeSplash=()=>{const s=$("#splash");if(!s)return;s.classList.add("out");setTimeout(()=>s.remove(),650)};
+function splashText(){
+  $("#splash h1").innerHTML=USER?"مرحباً بالباش مهندس "+esc(USER)+"<br>أهلاً بعودتك":"مرحباً بكم في الجامعة الإماراتية الدولية";
+  $("#startBtn").textContent=USER?"تابع":"ابدأ الآن";
+}
+drawUser();splashText();
+$("#startBtn").onclick=()=>{if(USER)closeSplash();else askName(()=>{closeSplash()})};
+
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-code]");if(!b)return;
+  const c=b.dataset.code;(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast("تم نسخ الشيفرة: "+c,"ok"),()=>toast("الشيفرة: "+c,"info"))});
+const SCREENS={spec:pageSpec,level:pageLevel,term:pageTerm,subject:pageSubject,setup:viewSetup,quiz:viewQuiz,result:viewResult,random:viewRandom,past:viewPast,progress:viewProgress,review:viewReview,content:viewContent,add:viewContact,sug:viewContact,settings:viewSettings};
+render();
+
+/* ---------- تنبيه الخروج ---------- */
+let EXITING=false;
+window.addEventListener("beforeunload",e=>{if(EXITING)return;if(state.screen==="quiz"||state.live){e.preventDefault();e.returnValue=""}});
+/* المتصفحات تتجاهل سجل التنقل المضاف قبل أي لمس للصفحة، لذلك نضيفه عند أول تفاعل */
+let ARMED=false;
+const arm=()=>{if(ARMED)return;ARMED=true;try{history.pushState({g:1},"")}catch(e){}["pointerdown","touchstart","click","keydown"].forEach(t=>document.removeEventListener(t,arm,true))};
+["pointerdown","touchstart","click","keydown"].forEach(t=>document.addEventListener(t,arm,true));
+window.addEventListener("popstate",()=>{
+  if(EXITING||!ARMED)return;
+  try{history.pushState({g:1},"")}catch(e){}
+  if(MODAL){if(MODAL.canX)closeModal();return}
+  if(drawer.classList.contains("on")){drawerOpen(false);return}
+  if(state.screen!=="spec"){nav("spec");return}   /* خارج الرئيسية: الرجوع يعيدك للرئيسية */
+  ask({title:"هل أنت متأكد من الخروج؟",msg:"سيتم الخروج من المنصة.",yes:"نعم، اخرج",danger:true,
+    onYes:()=>{EXITING=true;try{history.go(-2)}catch(e){}setTimeout(()=>{try{window.close()}catch(e){}setTimeout(()=>{location.replace("about:blank")},250)},350)}});
+});
+</script>
+</body>
+</html>
